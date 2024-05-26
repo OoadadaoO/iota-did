@@ -1,0 +1,14 @@
+{
+  "name": "@did/examples",
+  "version": "1.0.0",
+  "license": "MIT",
+  "scripts": {
+    "test:did": "tsx src/iota/did.ts",
+    "test:vc_vp": "tsx src/iota/vc_vp.ts",
+    "dev": "tsx watch src/index.ts",
+    "build": "tsc --build",
+    "start": "node --import ../../loader.js dist/index.js"
+  },
+  "type": "module",
+  "devDependencies": {}
+}

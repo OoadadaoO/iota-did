@@ -1,0 +1,19 @@
+{
+  "name": "@did/lowdb",
+  "version": "1.0.0",
+  "license": "MIT",
+  "main": "dist/index.js",
+  "types": "dist/index.d.ts",
+  "scripts": {
+    "dev": "tsx watch src/index.ts",
+    "test:crypto": "tsx watch src/crypto.test.ts",
+    "test": "tsx watch src/index.test.ts",
+    "build": "tsc --build",
+    "start": "node --import ../../loader.js dist/index.js"
+  },
+  "type": "module",
+  "devDependencies": {},
+  "dependencies": {
+    "lowdb": "^7.0.1"
+  }
+}

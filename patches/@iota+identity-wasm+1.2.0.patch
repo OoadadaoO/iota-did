@@ -1,0 +1,13 @@
+diff --git a/node_modules/@iota/identity-wasm/node/iota_identity_client.js b/node_modules/@iota/identity-wasm/node/iota_identity_client.js
+index 6e523a3..9919dae 100644
+--- a/node_modules/@iota/identity-wasm/node/iota_identity_client.js
++++ b/node_modules/@iota/identity-wasm/node/iota_identity_client.js
+@@ -129,7 +129,7 @@ class IotaIdentityClient {
+         // Send funds to the address.
+         const basicOutput = await this.client.buildBasicOutput({
+             amount: aliasOutput.getAmount(),
+-            nativeTokens: aliasOutput.getNativeTokens(),
++            nativeTokens: typeof aliasOutput.getNativeTokens === 'function' ? aliasOutput.getNativeTokens() : undefined,
+             unlockConditions: [
+                 new _sdk_wasm_1.AddressUnlockCondition(address),
+             ],

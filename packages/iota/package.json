@@ -1,0 +1,18 @@
+{
+  "name": "@did/iota",
+  "version": "1.0.0",
+  "license": "MIT",
+  "main": "dist/index.js",
+  "types": "dist/index.d.ts",
+  "scripts": {
+    "dev": "tsx watch src/index.ts",
+    "build": "tsc --build",
+    "start": "node --import ../../loader.js dist/index.js"
+  },
+  "type": "module",
+  "devDependencies": {},
+  "dependencies": {
+    "@iota/identity-wasm": "^1.2.0",
+    "@iota/sdk-wasm": "^1.1.3"
+  }
+}
