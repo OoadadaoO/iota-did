@@ -15,10 +15,8 @@ const HOLDER_WALLET = "./db/holder.json";
 
 const revokeIndex = 1;
 
-await Promise.all([
-  initializeWallet(ISSUER_WALLET),
-  initializeWallet(HOLDER_WALLET),
-]);
+await initializeWallet(ISSUER_WALLET);
+await initializeWallet(HOLDER_WALLET);
 
 const issuer = await IotaClient.build(
   {
