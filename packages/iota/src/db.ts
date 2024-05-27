@@ -31,6 +31,5 @@ export type WalletOptions = AdapterOptions;
 export class WalletDB extends LowDB<Wallet> {
   constructor(adapterOptions: WalletOptions) {
     super(adapterOptions, JSON.parse(JSON.stringify(defaultWallet)));
-    console.log("Default", defaultWallet);
   }
 }

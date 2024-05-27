@@ -60,9 +60,7 @@ export class IotaClient {
 
   static async build(iota: IotaOptions, wallet: WalletOptions) {
     const client = new IotaClient(iota, wallet);
-    console.log("1.", client.db.data);
     await client.db.read();
-    console.log("2.", client.db.data);
     if (!client.db.data.mnemonic) {
       console.log("Creating wallet...");
       await createWallet(client.didClient, client.db);
