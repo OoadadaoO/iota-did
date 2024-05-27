@@ -52,9 +52,14 @@ export async function validateVP(
   );
 
   // Validate presentation. Note that this doesn't validate the included credentials.
-  const decodedPresentation = new JwtPresentationValidator(
+  const presentationValidator = new JwtPresentationValidator(
     new EdDSAJwsVerifier(),
-  ).validate(presentationJwt, resolvedHolder, jwtPresentationValidationOptions);
+  );
+  const decodedPresentation = presentationValidator.validate(
+    presentationJwt,
+    resolvedHolder,
+    jwtPresentationValidationOptions,
+  );
 
   // Validate credentials in the presentation.
   const credentialValidator = new JwtCredentialValidator(

@@ -6,6 +6,7 @@ import {
   Credential,
   IotaDID,
   JwsSignatureOptions,
+  type IJwsSignatureOptions,
   type ICredential,
   type Jwt,
 } from "@iota/identity-wasm/node/index";
@@ -17,6 +18,8 @@ export async function createVC(
   issuerDidStr: string,
   issuerFragment: string,
   credentialData: ICredential,
+  jwsSignatureOptions?: IJwsSignatureOptions,
+  customClaims?: Record<string, any>,
 ): Promise<{ vc: Jwt }> {
   const { didClient, storage } = this;
 
@@ -53,7 +56,8 @@ export async function createVC(
     storage,
     issuerFragment,
     unsignedVc,
-    new JwsSignatureOptions(),
+    new JwsSignatureOptions(jwsSignatureOptions),
+    customClaims,
   );
 
   return { vc: credentialJwt };

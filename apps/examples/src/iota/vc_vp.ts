@@ -55,28 +55,34 @@ try {
 }
 
 // Create a Rovocable VC
-const { vc } = await issuer.createVC(issuerDid, issuerFragment, {
-  id: "http://example.edu/credentials/3732",
-  type: "UniversityDegreeCredential",
-  issuer: issuerDid,
-  credentialSubject: {
-    id: holderDid,
-    name: "Alice",
-    degreeName: "Bachelor of Science and Arts of National Taiwan University",
-    degreeType: "BachelorDegree of National Taiwan University",
-    GPA: "4.0",
+const { vc } = await issuer.createVC(
+  issuerDid,
+  issuerFragment,
+  {
+    id: "http://example.edu/credentials/3732",
+    type: "UniversityDegreeCredential",
+    issuer: issuerDid,
+    credentialSubject: {
+      id: holderDid,
+      name: "Alice",
+      degreeName: "Bachelor of Science and Arts of National Taiwan University",
+      degreeType: "BachelorDegree of National Taiwan University",
+      GPA: "4.0",
+    },
+    credentialStatus: {
+      id: IotaDID.parse(issuerDid).join(ISSUER_ROVOKE_FRAGMENT).toString(),
+      type: RevocationBitmap.type(),
+      revocationBitmapIndex: revokeIndex.toString(),
+    },
   },
-  credentialStatus: {
-    id: IotaDID.parse(issuerDid).join(ISSUER_ROVOKE_FRAGMENT).toString(),
-    type: RevocationBitmap.type(),
-    revocationBitmapIndex: revokeIndex.toString(),
-  },
-});
+  {},
+  { exp: Math.trunc(Date.now() / 1000 + 60 * 10) },
+);
 console.log("VC > ", vc.toJSON(), "\n");
 
-// // Validate the VC
-// ret = await holder.validateVC(vc);
-// console.log("Credential > ", ret.credential, '\n');
+// Validate the VC
+ret = await holder.validateVC(vc);
+console.log("Credential > ", ret.credential, "\n");
 
 // Revoke the VC
 await issuer.revokeVC(issuerDid, ISSUER_ROVOKE_FRAGMENT, revokeIndex);
@@ -107,7 +113,7 @@ const { vp } = await holder.createVP(
     verifiableCredential: [vc],
   },
   { nonce },
-  { expirationDate: expirationDate },
+  { expirationDate: expirationDate }, // or { customClaims: { exp: Math.trunc(Date.now() / 1000 + 60 * 10) } },
 );
 console.log("VP > ", vp.toJSON(), "\n");
 

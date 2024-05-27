@@ -21,6 +21,16 @@
 - Node.js v20
 - yarn 1.22
 
+### Clone the repository
+
+```bash
+git clone https://github.com/OoadadaoO/iota-did-public.git
+cd iota-did-public/
+
+# pull the latest changes
+git pull
+```
+
 ### Installation
 
 ```bash
