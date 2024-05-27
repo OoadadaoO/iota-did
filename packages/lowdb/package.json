@@ -5,11 +5,9 @@
   "main": "dist/index.js",
   "types": "dist/index.d.ts",
   "scripts": {
-    "dev": "tsx watch src/index.ts",
-    "test:crypto": "tsx watch src/crypto.test.ts",
-    "test": "tsx watch src/index.test.ts",
-    "build": "tsc --build",
-    "start": "node --import ../../loader.js dist/index.js"
+    "test:crypto": "tsx src/crypto.test.ts",
+    "test": "tsx src/index.test.ts",
+    "build": "tsc --build"
   },
   "type": "module",
   "devDependencies": {},
