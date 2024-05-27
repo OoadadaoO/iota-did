@@ -25,7 +25,7 @@ const issuer = await IotaClient.build(
     primaryNode: API_ENDPOINT,
   },
   {
-    dbPath: ISSUER_WALLET,
+    filename: ISSUER_WALLET,
   },
 );
 const issuerDid = issuer.db.data.docs[0]?.id;
@@ -36,7 +36,7 @@ const holder = await IotaClient.build(
     primaryNode: API_ENDPOINT,
   },
   {
-    dbPath: HOLDER_WALLET,
+    filename: HOLDER_WALLET,
   },
 );
 const holderDid = holder.db.data.docs[0]?.id;

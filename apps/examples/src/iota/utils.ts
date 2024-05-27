@@ -17,7 +17,7 @@ export async function initializeWallet(walletPath: PathLike) {
       primaryNode: API_ENDPOINT,
     },
     {
-      dbPath: walletPath,
+      filename: walletPath,
     },
   );
 

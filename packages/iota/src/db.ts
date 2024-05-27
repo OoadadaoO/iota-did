@@ -26,8 +26,10 @@ export const defaultWallet: Wallet = {
   docs: [],
 };
 
+export type WalletOptions = AdapterOptions;
+
 export class WalletDB extends LowDB<Wallet> {
-  constructor(adapterOptions: AdapterOptions) {
+  constructor(adapterOptions: WalletOptions) {
     super(adapterOptions, defaultWallet);
   }
 }

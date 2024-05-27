@@ -1,5 +1,3 @@
-import type { PathLike } from "fs";
-
 import {
   IotaIdentityClient,
   JwkMemStore,
@@ -8,7 +6,7 @@ import {
 } from "@iota/identity-wasm/node/index";
 import { Client } from "@iota/sdk-wasm/node/lib/index";
 
-import { WalletDB } from "./db";
+import { WalletDB, type WalletOptions } from "./db";
 import { createWallet } from "./method/_create_wallet";
 import { loadStorage } from "./method/_load_storage";
 import { deactivateDid, reactivateDid } from "./method/activate_did";
@@ -42,10 +40,6 @@ export type IotaOptions = {
   primaryNode: string;
 };
 
-export type WalletOptions = {
-  dbPath: PathLike;
-};
-
 export class IotaClient {
   client: Client;
   didClient: IotaIdentityClient;
@@ -59,7 +53,7 @@ export class IotaClient {
     });
     this.didClient = new IotaIdentityClient(this.client);
 
-    this.db = new WalletDB({ filename: wallet.dbPath });
+    this.db = new WalletDB(wallet);
 
     this.storage = new Storage(new JwkMemStore(), new KeyIdMemStore());
   }
