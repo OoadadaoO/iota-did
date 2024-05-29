@@ -1,7 +1,5 @@
 // Copyright 2020-2023 IOTA Stiftung
 // SPDX-License-Identifier: Apache-2.0
-import type { IotaClient } from "..";
-
 import {
   IotaDID,
   JwsSignatureOptions,
@@ -12,6 +10,8 @@ import {
   type IPresentation,
   type Jwt,
 } from "@iota/identity-wasm/node/index";
+
+import type { IotaClient } from "../";
 
 export type Subject = Record<string, string>;
 

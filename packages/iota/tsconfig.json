@@ -9,7 +9,26 @@
     "declarationMap": true,
     "sourceMap": true
   },
-  "include": ["./src/**/*"],
-  "exclude": ["./node_modules", "./dist"],
+  "include": [
+    "./src/**/*",
+    "deprecated/methods/_create_wallet.ts",
+    "deprecated/methods/_load_storage.ts",
+    "deprecated/methods/activate_did.ts",
+    "deprecated/methods/create_did.ts",
+    "deprecated/methods/create_vc.ts",
+    "deprecated/methods/create_vp.ts",
+    "deprecated/methods/delete_did.ts",
+    "deprecated/methods/get_balance.ts",
+    "deprecated/methods/publish_did.ts",
+    "deprecated/methods/request_funds.ts",
+    "deprecated/methods/resolve_did.ts",
+    "deprecated/methods/revoke_vc.ts",
+    "deprecated/methods/update_method.ts",
+    "deprecated/methods/update_relationship.ts",
+    "deprecated/methods/update_service.ts",
+    "deprecated/methods/validate_vc.ts",
+    "deprecated/methods/validate_vp.ts"
+  ],
+  "exclude": ["./node_modules", "./dist", "./deprecated"],
   "references": [{ "path": "../lowdb" }]
 }

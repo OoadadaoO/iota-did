@@ -1,12 +1,12 @@
 // Copyright 2020-2023 IOTA Stiftung
 // SPDX-License-Identifier: Apache-2.0
-import type { IotaClient } from "..";
-
 import { IotaDID } from "@iota/identity-wasm/node/index";
 import {
   type MnemonicSecretManager,
   Utils,
 } from "@iota/sdk-wasm/node/lib/index";
+
+import type { IotaClient } from "../";
 
 export async function deleteDid(this: IotaClient, didStr: string) {
   const { didClient, db } = this;

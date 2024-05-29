@@ -17,7 +17,8 @@
     "user-db": "yarn workspace @did/user-db",
     "lint": "eslint ./apps/* ./packages/*",
     "format": "prettier --write ./apps/*/src ./packages/*/src",
-    "type-check": "tsc --noEmit"
+    "type-check": "tsc --noEmit",
+    "postinstall": "patch-package"
   },
   "devDependencies": {
     "@trivago/prettier-plugin-sort-imports": "^4.3.0",

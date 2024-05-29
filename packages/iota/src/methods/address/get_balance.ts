@@ -1,13 +1,14 @@
-import type { IotaClient } from "..";
+import type { DIDAddress } from "../../DIDAddress";
 
 export async function getBalance(
-  this: IotaClient,
+  this: DIDAddress,
 ): Promise<bigint | undefined> {
-  const { client, db } = this;
+  const client = await this.getClient();
+  const bech32Address = await this.getBech32Address();
 
   try {
     const outputIds = await client.basicOutputIds([
-      { address: db.data.bech32Address },
+      { address: bech32Address },
       { hasExpiration: false },
       { hasTimelock: false },
       { hasStorageDepositReturn: false },

@@ -1,8 +1,8 @@
 // Copyright 2020-2023 IOTA Stiftung
 // SPDX-License-Identifier: Apache-2.0
-import type { IotaClient } from "..";
-
 import { IotaDID, type IotaDocument } from "@iota/identity-wasm/node/index";
+
+import type { IotaClient } from "../";
 
 export async function revokeVC(
   this: IotaClient,

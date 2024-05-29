@@ -1,4 +1,4 @@
-import { IotaClient } from "@did/iota";
+// import { DIDWallet } from "@did/iota";
 import {
   Duration,
   IotaDID,
@@ -6,56 +6,81 @@ import {
   Timestamp,
 } from "@iota/identity-wasm/node";
 
+// import { CoinType } from "@iota/sdk";
+import { userIntialize } from "./utils";
 import { initializeWallet } from "./utils";
 
-const API_ENDPOINT = "http://140.112.18.206:14265";
-const ISSUER_WALLET = "./db/issuer.json";
+const ISSUER_STORAGE_PATH = "./wallet/issuer";
+const ISSUER_PASSWORD = "issuer-password";
 const ISSUER_ROVOKE_FRAGMENT = "#revocation";
-const HOLDER_WALLET = "./db/holder.json";
+const HOLDER_STORAGE_PATH = "./wallet/holder";
+const HOLDER_PASSWORD = "holder-password";
+
+// const API_ENDPOINT = "http://140.112.18.206:14265";
 
 const revokeIndex = 1;
 
-await initializeWallet(ISSUER_WALLET);
-await initializeWallet(HOLDER_WALLET);
+const iDidWallet = await initializeWallet(ISSUER_STORAGE_PATH, ISSUER_PASSWORD);
+// const iDidWallet = new DIDWallet({
+//   storagePath: ISSUER_STORAGE_PATH,
+//   clientOptions: {
+//     primaryNode: API_ENDPOINT,
+//     localPow: true,
+//   },
+//   coinType: CoinType.IOTA,
+//   password: {
+//     stronghold: ISSUER_PASSWORD,
+//   },
+// });
+await userIntialize(iDidWallet);
+const iDidAddress = await iDidWallet.getDIDAddress("First", 0);
+const iDidDb = await iDidAddress.getDidDb();
+const issuerDid = Object.keys(iDidDb.data)[0].split("/")[2];
+const issuerFragment = (await iDidAddress.resolveDid(issuerDid)).document
+  .methods()[0]
+  .id()
+  .fragment()!;
+console.log(`Issuer DID: ${issuerDid}\nIssuer Fragment: ${issuerFragment}\n`);
 
-const issuer = await IotaClient.build(
-  {
-    primaryNode: API_ENDPOINT,
-  },
-  {
-    filename: ISSUER_WALLET,
-  },
+const holderWallet = await initializeWallet(
+  HOLDER_STORAGE_PATH,
+  HOLDER_PASSWORD,
 );
-const issuerDid = issuer.db.data.docs[0]?.id;
-const issuerFragment = issuer.db.data.docs[0]?.methods[0].fragment;
-
-const holder = await IotaClient.build(
-  {
-    primaryNode: API_ENDPOINT,
-  },
-  {
-    filename: HOLDER_WALLET,
-  },
-);
-const holderDid = holder.db.data.docs[0]?.id;
-const holderFragment = holder.db.data.docs[0]?.methods[0].fragment;
+// const holderWallet = new DIDWallet({
+//   storagePath: HOLDER_STORAGE_PATH,
+//   clientOptions: {
+//     primaryNode: API_ENDPOINT,
+//     localPow: true,
+//   },
+//   coinType: CoinType.IOTA,
+//   password: {
+//     stronghold: HOLDER_PASSWORD,
+//   },
+// });
+await userIntialize(holderWallet);
+const holderAddress = await holderWallet.getDIDAddress("First", 0);
+const holderDb = await holderAddress.getDidDb();
+const holderDid = Object.keys(holderDb.data)[0].split("/")[2];
+const holderFragment = (await holderAddress.resolveDid(holderDid)).document
+  .methods()[0]
+  .id()
+  .fragment()!;
+console.log(`Holder DID: ${holderDid}\nHolder Fragment: ${holderFragment}\n`);
 
 let ret;
-
-console.log(issuer.db === holder.db);
 
 // console.log(JSON.stringify(await issuer.resolveDid(issuerDid), null, 2), '\n');
 // console.log(JSON.stringify(await holder.resolveDid(holderDid), null, 2), '\n');
 
 // Initialization: Unrevoke the VC
 try {
-  await issuer.unrevokeVC(issuerDid, ISSUER_ROVOKE_FRAGMENT, revokeIndex);
+  await iDidAddress.unrevokeVC(issuerDid, ISSUER_ROVOKE_FRAGMENT, revokeIndex);
 } catch (error) {
   console.log("Has unrevoked!", "\n");
 }
 
 // Create a Rovocable VC
-const { vc } = await issuer.createVC(
+const { vc } = await iDidAddress.createVC(
   issuerDid,
   issuerFragment,
   {
@@ -81,22 +106,22 @@ const { vc } = await issuer.createVC(
 console.log("VC > ", vc.toJSON(), "\n");
 
 // Validate the VC
-ret = await holder.validateVC(vc);
+ret = await holderAddress.validateVC(vc);
 console.log("Credential > ", ret.credential, "\n");
 
 // Revoke the VC
-await issuer.revokeVC(issuerDid, ISSUER_ROVOKE_FRAGMENT, revokeIndex);
+await iDidAddress.revokeVC(issuerDid, ISSUER_ROVOKE_FRAGMENT, revokeIndex);
 try {
-  ret = await holder.validateVC(vc);
+  ret = await holderAddress.validateVC(vc);
   console.log(`Revoke Failed! Credential > `, ret.credential, "\n");
 } catch (e) {
   console.log(`Revoke successfully! Error during validation: ${e}`, "\n");
 }
 
 // Unrevoke the VC
-await issuer.unrevokeVC(issuerDid, ISSUER_ROVOKE_FRAGMENT, revokeIndex);
+await iDidAddress.unrevokeVC(issuerDid, ISSUER_ROVOKE_FRAGMENT, revokeIndex);
 try {
-  ret = await holder.validateVC(vc);
+  ret = await holderAddress.validateVC(vc);
   console.log(`Unrevoke successfully! Credential > `, ret.credential, "\n");
 } catch (e) {
   console.log(`Unrevoke Failed! Error during validation: ${e}`, "\n");
@@ -105,7 +130,7 @@ try {
 // Create VP
 const nonce = "nosv8-dscsdv-csdvs-vsdvsd";
 const expirationDate = Timestamp.nowUTC().checkedAdd(Duration.minutes(10));
-const { vp } = await holder.createVP(
+const { vp } = await holderAddress.createVP(
   holderDid,
   holderFragment,
   {
@@ -118,7 +143,7 @@ const { vp } = await holder.createVP(
 console.log("VP > ", vp.toJSON(), "\n");
 
 // Validate the VP
-ret = await issuer.validateVP(vp, { nonce });
+ret = await iDidAddress.validateVP(vp, { nonce });
 console.log(
   "Presentation > ",
   JSON.stringify(

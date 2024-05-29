@@ -1,9 +1,9 @@
-import type { IotaClient } from "..";
+import type { DIDAddress } from "../../DIDAddress";
 
-export async function requestFunds(this: IotaClient, faucetEndpoint: string) {
-  const { db } = this;
+export async function requestFunds(this: DIDAddress, faucetEndpoint: string) {
+  const bech32Address = await this.getBech32Address();
 
-  const requestObj = JSON.stringify({ address: db.data.bech32Address });
+  const requestObj = JSON.stringify({ address: bech32Address });
   let errorMessage, data;
   try {
     const response = await fetch(faucetEndpoint, {

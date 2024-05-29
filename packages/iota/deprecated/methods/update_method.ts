@@ -1,7 +1,5 @@
 // Copyright 2020-2023 IOTA Stiftung
 // SPDX-License-Identifier: Apache-2.0
-import type { IotaClient } from "..";
-
 import {
   IotaDID,
   JwkMemStore,
@@ -12,6 +10,7 @@ import {
   type IotaDocument,
 } from "@iota/identity-wasm/node/index";
 
+import type { IotaClient } from "../";
 import type { JWK } from "../db";
 
 /** Demonstrates how to update a DID document in an existing Alias Output. */

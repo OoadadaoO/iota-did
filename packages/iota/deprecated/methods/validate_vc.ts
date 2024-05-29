@@ -34,8 +34,6 @@
 // }
 // Copyright 2020-2023 IOTA Stiftung
 // SPDX-License-Identifier: Apache-2.0
-import type { IotaClient } from "..";
-
 import {
   EdDSAJwsVerifier,
   FailFast,
@@ -45,6 +43,8 @@ import {
   type Credential,
   type Jwt,
 } from "@iota/identity-wasm/node/index";
+
+import type { IotaClient } from "../";
 
 export type Subject = Record<string, string>;
 

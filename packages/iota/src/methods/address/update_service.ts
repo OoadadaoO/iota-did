@@ -1,7 +1,3 @@
-// Copyright 2020-2023 IOTA Stiftung
-// SPDX-License-Identifier: Apache-2.0
-import type { IotaClient } from "..";
-
 import {
   type IService,
   Service,
@@ -10,17 +6,17 @@ import {
   RevocationBitmap,
 } from "@iota/identity-wasm/node/index";
 
+import type { DIDAddress } from "../..";
+
 export async function insertService(
-  this: IotaClient,
+  this: DIDAddress,
   didStr: string,
   fragment: string,
   serviceOptions?: Omit<IService, "id">,
 ) {
-  const { didClient, db, publishDid } = this;
+  const didClient = await this.getDidClient();
 
   // check input
-  if (!db.data.docs.some((doc) => doc.id === didStr))
-    throw new Error("DID not found");
   if (!fragment.startsWith("#")) fragment = `#${fragment}`;
 
   // Parse the DID and resolve the DID document.
@@ -36,20 +32,18 @@ export async function insertService(
   document.insertService(service);
 
   document.setMetadataUpdated(Timestamp.nowUTC());
-  const { document: published } = await publishDid({ document });
+  const { document: published } = await this.publishDid({ document });
   return { document: published };
 }
 
 export async function removeService(
-  this: IotaClient,
+  this: DIDAddress,
   didStr: string,
   fragment: string,
 ) {
-  const { didClient, db, publishDid } = this;
+  const didClient = await this.getDidClient();
 
   // check input
-  if (!db.data.docs.some((doc) => doc.id === didStr))
-    throw new Error("DID not found");
   if (!fragment.startsWith("#")) fragment = `#${fragment}`;
 
   // Parse the DID and resolve the DID document.
@@ -59,20 +53,18 @@ export async function removeService(
   document.removeService(did.join(fragment));
 
   document.setMetadataUpdated(Timestamp.nowUTC());
-  const { document: published } = await publishDid({ document });
+  const { document: published } = await this.publishDid({ document });
   return { document: published };
 }
 
 export async function insertRevokeService(
-  this: IotaClient,
+  this: DIDAddress,
   didStr: string,
   fragment: string,
 ) {
-  const { didClient, db, publishDid } = this;
+  const didClient = await this.getDidClient();
 
   // check input
-  if (!db.data.docs.some((doc) => doc.id === didStr))
-    throw new Error("DID not found");
   if (!fragment.startsWith("#")) fragment = `#${fragment}`;
 
   // Parse the DID and resolve the DID document.
@@ -90,6 +82,6 @@ export async function insertRevokeService(
   document.insertService(revocationService);
 
   document.setMetadataUpdated(Timestamp.nowUTC());
-  const { document: published } = await publishDid({ document });
+  const { document: published } = await this.publishDid({ document });
   return { document: published };
 }

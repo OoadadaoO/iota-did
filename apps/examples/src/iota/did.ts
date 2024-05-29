@@ -1,5 +1,6 @@
 import { initializeWallet } from "./utils";
 
-const WALLET = "./db/test.json";
+const PATH = "./wallet/test";
+const PASSWORD = "dksjflksldfk";
 
-await initializeWallet(WALLET);
+await initializeWallet(PATH, PASSWORD);

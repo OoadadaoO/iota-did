@@ -1,7 +1,5 @@
 // Copyright 2020-2023 IOTA Stiftung
 // SPDX-License-Identifier: Apache-2.0
-import type { IotaClient } from "..";
-
 import {
   EdDSAJwsVerifier,
   FailFast,
@@ -19,27 +17,18 @@ import {
   type Presentation,
 } from "@iota/identity-wasm/node/index";
 
-export type Subject = Record<string, string>;
+import type { DIDAddress } from "../../DIDAddress";
+import type { DIDWallet } from "../../DIDWallet";
 
 export async function validateVP(
-  this: IotaClient,
+  this: DIDWallet | DIDAddress,
   presentationJwt: Jwt,
   jwsVerificationOptions?: IJwsVerificationOptions,
 ): Promise<{
   presentation: Presentation;
   credentials: Credential[];
 }> {
-  const { didClient } = this;
-
-  // Parse the DID and resolve the DID document.
-
-  const jwtPresentationValidationOptions = new JwtPresentationValidationOptions(
-    {
-      presentationVerifierOptions: new JwsVerificationOptions(
-        jwsVerificationOptions,
-      ),
-    },
-  );
+  const didClient = await this.getDidClient();
 
   // Resolve the presentation holder.
   const resolver = new Resolver({
@@ -54,6 +43,13 @@ export async function validateVP(
   // Validate presentation. Note that this doesn't validate the included credentials.
   const presentationValidator = new JwtPresentationValidator(
     new EdDSAJwsVerifier(),
+  );
+  const jwtPresentationValidationOptions = new JwtPresentationValidationOptions(
+    {
+      presentationVerifierOptions: new JwsVerificationOptions(
+        jwsVerificationOptions,
+      ),
+    },
   );
   const decodedPresentation = presentationValidator.validate(
     presentationJwt,
