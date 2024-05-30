@@ -1,17 +1,29 @@
 import {
-  IotaDID,
   IotaDocument,
   MethodDigest,
+  MethodScope,
 } from "@iota/identity-wasm/node/index";
 import { type AliasOutput, Utils, type IRent } from "@iota/sdk";
 
 import type { DIDAddress } from "../../DIDAddress";
 
-export async function createDid(
-  this: DIDAddress,
-): Promise<{ document: IotaDocument }> {
+export async function getDids(this: DIDAddress): Promise<string[]> {
+  const client = await this.getClient();
+
+  const bech32Hrp = await this.getBech32Hrp();
+  const outputsIds = await client.aliasOutputIds([
+    { sender: await this.getBech32Address() },
+  ]);
+  const outputs = await client.getOutputsIgnoreErrors(outputsIds.items);
+  const dids = outputs.map(
+    (output) => `did:iota:${bech32Hrp}:${(output.output as any).aliasId}`,
+  );
+
+  return dids;
+}
+
+export async function createDid(this: DIDAddress): Promise<IotaDocument> {
   const didClient = await this.getDidClient();
-  const didDb = await this.getDidDb();
 
   // Get the Bech32 human-readable part (HRP) of the network.
   const networkHrp: string = await didClient.getNetworkHrp();
@@ -29,26 +41,26 @@ export async function createDid(
     document,
   );
 
-  const { document: published } = await this.publishDid({ aliasOutput });
+  const published = await this.publishDid({ aliasOutput });
 
-  await didDb.update((data) => {
-    data[this.toDidIndex(published.id().toString())] = {
-      activate: true,
-    };
-  });
+  // Insert a verification method
+  const updated = await this.insertMethod(
+    published.id().toString(),
+    MethodScope.VerificationMethod(),
+  );
 
-  return { document: published };
+  return updated;
 }
 
 export async function deleteDid(this: DIDAddress, didString: string) {
   const didClient = await this.getDidClient();
   const secretManagerType = await this.getSecretManagerType();
-  const didDb = await this.getDidDb();
   const keyIdDb = await this.getKeyIdDb();
 
   // Parse the DID and resolve the DID document.
-  const did = IotaDID.parse(didString);
-  const methods = (await didClient.resolveDid(did)).methods();
+  const document = await this.resolveDid(didString);
+  const did = document.id();
+  const methods = document.methods();
 
   // delete the DID document
   const bech32Address = await this.getBech32Address();
@@ -56,9 +68,6 @@ export async function deleteDid(this: DIDAddress, didString: string) {
   await didClient.deleteDidOutput(secretManagerType, destinationAddress, did);
 
   // update database
-  await didDb.update((data) => {
-    delete data[this.toDidIndex(didString)];
-  });
   await keyIdDb.update((data) => {
     methods.forEach((m) => {
       delete data[this.toKeyIdIndex(new MethodDigest(m))];
@@ -67,51 +76,29 @@ export async function deleteDid(this: DIDAddress, didString: string) {
 }
 
 export async function deactivateDid(this: DIDAddress, didString: string) {
-  const didClient = await this.getDidClient();
-  const didDb = await this.getDidDb();
-
   // Parse the DID and resolve the DID document.
-  const did = IotaDID.parse(didString);
-  const document = await didClient.resolveDid(did);
+  const document = await this.resolveDid(didString);
   document.setMetadataDeactivated(true);
 
   // Publish the output.
-  const { document: deactivated } = await this.publishDid({
+  const deactivated = await this.publishDid({
     document,
   });
 
-  // update database
-  await didDb.update((data) => {
-    data[this.toDidIndex(didString)] = {
-      activate: false,
-    };
-  });
-
-  return { document: deactivated };
+  return deactivated;
 }
 
 export async function reactivateDid(this: DIDAddress, didString: string) {
-  const didClient = await this.getDidClient();
-  const didDb = await this.getDidDb();
-
   // Parse the DID and resolve the DID document.
-  const did = IotaDID.parse(didString);
-  const document = await didClient.resolveDid(did);
+  const document = await this.resolveDid(didString);
   document.setMetadataDeactivated(false);
 
   // Publish the output.
-  const { document: reactivated } = await this.publishDid({
+  const reactivated = await this.publishDid({
     document,
   });
 
-  // update database
-  await didDb.update((data) => {
-    data[this.toDidIndex(didString)] = {
-      activate: true,
-    };
-  });
-
-  return { document: reactivated };
+  return reactivated;
 }
 
 type PublishOut =
@@ -127,7 +114,7 @@ type PublishOut =
 export async function publishDid(
   this: DIDAddress,
   out: PublishOut,
-): Promise<{ document: IotaDocument }> {
+): Promise<IotaDocument> {
   const client = await this.getClient();
   const didClient = await this.getDidClient();
   const secretManagerType = await this.getSecretManagerType();
@@ -155,20 +142,6 @@ export async function publishDid(
     secretManagerType,
     aliasOutput,
   );
-  // const networkHrp = await didClient.getNetworkHrp();
-  // // Publish block.
-  // const [blockId, block] = await client.buildAndPostBlock(secretManagerType, {
-  //   outputs: [aliasOutput],
-  // });
-  // console.log("block", block);
-  // await client.retryUntilIncluded(blockId);
-  // // Extract document with computed AliasId.
-  // const documents = IotaDocument.unpackFromBlock(networkHrp, block);
-  // if (documents.length < 1) {
-  //   throw new Error("publishDidOutput: no DID document in transaction payload");
-  // }
-  // console.log("documents", documents);
-  // console.log("updated", documents[0]);
 
-  return { document: updated };
+  return updated;
 }

@@ -1,6 +1,4 @@
+import { env } from "./env";
 import { initializeWallet } from "./utils";
 
-const PATH = "./wallet/test";
-const PASSWORD = "dksjflksldfk";
-
-await initializeWallet(PATH, PASSWORD);
+await initializeWallet(env.TEST_STORAGE_PATH, env.TEST_PASSWORD);

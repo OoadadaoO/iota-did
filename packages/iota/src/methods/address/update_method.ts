@@ -1,11 +1,11 @@
 import {
-  IotaDID,
   JwkMemStore,
   JwsAlgorithm,
   MethodScope,
   Timestamp,
   MethodDigest,
   VerificationMethod,
+  type IotaDocument,
 } from "@iota/identity-wasm/node/index";
 
 import type { DIDAddress } from "../../DIDAddress";
@@ -14,12 +14,12 @@ export async function insertMethod(
   this: DIDAddress,
   didString: string,
   methodScope?: MethodScope,
-) {
+): Promise<IotaDocument> {
   const storage = await this.getStorage();
 
   // Resolve the DID document.
-  const did = IotaDID.parse(didString);
-  const { document } = await this.resolveDid(didString);
+  const document = await this.resolveDid(didString);
+  const did = document.id();
 
   // Insert a new Ed25519 (verification) method in the DID document.
   // await document.generateMethod(
@@ -43,10 +43,7 @@ export async function insertMethod(
   );
   document.setMetadataUpdated(Timestamp.nowUTC());
 
-  return {
-    document: await this.publishDid({ document }),
-    method: document.resolveMethod(fragment)!,
-  };
+  return await this.publishDid({ document });
 }
 
 /** Demonstrates how to update a DID document in an existing Alias Output. */
@@ -55,14 +52,14 @@ export async function removeMethod(
   didString: string,
   fragment: string,
   methodScope?: MethodScope,
-) {
+): Promise<IotaDocument> {
   const storage = await this.getStorage();
 
   // check input
   if (!fragment.startsWith("#")) fragment = `#${fragment}`;
 
   // Resolve the DID document.
-  const { document } = await this.resolveDid(didString);
+  const document = await this.resolveDid(didString);
 
   // Remove the origin (verification) method.
   const originalMethod = document.resolveMethod(fragment, methodScope);

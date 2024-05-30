@@ -1,7 +1,6 @@
 import {
-  IotaDID,
   Timestamp,
-  type IotaIdentityClient,
+  type IotaDocument,
   type MethodRelationship,
 } from "@iota/identity-wasm/node/index";
 
@@ -20,20 +19,18 @@ export async function insertRelationship(
   didString: string,
   fragment: string,
   relationship: MethodRelationship,
-) {
-  const didClient: IotaIdentityClient = await this.getDidClient();
-
+): Promise<IotaDocument> {
   // check input
   if (!fragment.startsWith("#")) fragment = `#${fragment}`;
 
-  const did = IotaDID.parse(didString);
-  const document = await didClient.resolveDid(did);
+  const document = await this.resolveDid(didString);
+  const did = document.id();
 
   document.attachMethodRelationship(did.join(fragment), relationship);
 
   document.setMetadataUpdated(Timestamp.nowUTC());
-  const { document: published } = await this.publishDid({ document });
-  return { document: published };
+  const published = await this.publishDid({ document });
+  return published;
 }
 
 export async function removeRelationship(
@@ -41,18 +38,16 @@ export async function removeRelationship(
   didString: string,
   fragment: string,
   relationship: MethodRelationship,
-) {
-  const didClient: IotaIdentityClient = await this.getDidClient();
-
+): Promise<IotaDocument> {
   // check input
   if (!fragment.startsWith("#")) fragment = `#${fragment}`;
 
-  const did = IotaDID.parse(didString);
-  const document = await didClient.resolveDid(did);
+  const document = await this.resolveDid(didString);
+  const did = document.id();
 
   document.detachMethodRelationship(did.join(fragment), relationship);
 
   document.setMetadataUpdated(Timestamp.nowUTC());
-  const { document: published } = await this.publishDid({ document });
-  return { document: published };
+  const published = await this.publishDid({ document });
+  return published;
 }

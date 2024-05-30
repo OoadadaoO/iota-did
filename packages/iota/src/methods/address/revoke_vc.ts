@@ -1,48 +1,44 @@
-import { IotaDID, type IotaDocument } from "@iota/identity-wasm/node/index";
+import { type IotaDocument } from "@iota/identity-wasm/node/index";
 
 import type { DIDAddress } from "../..";
 
 export async function revokeVC(
   this: DIDAddress,
-  issuerDidStr: string,
+  issuerDidString: string,
   issuerRevokeFragment: string,
   issuerRevokeIndex: number | number[],
-): Promise<{ document: IotaDocument }> {
-  const didClient = await this.getDidClient();
-
+): Promise<IotaDocument> {
   if (!issuerRevokeFragment.startsWith("#"))
     issuerRevokeFragment = `#${issuerRevokeFragment}`;
 
   // Parse the DID and resolve the DID document.
-  const did = IotaDID.parse(issuerDidStr);
-  const document = await didClient.resolveDid(did);
+  const document = await this.resolveDid(issuerDidString);
+  const did = document.id();
 
   document.revokeCredentials(did.join(issuerRevokeFragment), issuerRevokeIndex);
-  const { document: published } = await this.publishDid({ document });
+  const published = await this.publishDid({ document });
 
-  return { document: published };
+  return published;
 }
 
 export async function unrevokeVC(
   this: DIDAddress,
-  issuerDidStr: string,
+  issuerDidString: string,
   issuerRevokeFragment: string,
   issuerRevokeIndex: number | number[],
-): Promise<{ document: IotaDocument }> {
-  const didClient = await this.getDidClient();
-
+): Promise<IotaDocument> {
   if (!issuerRevokeFragment.startsWith("#"))
     issuerRevokeFragment = `#${issuerRevokeFragment}`;
 
   // Parse the DID and resolve the DID document.
-  const did = IotaDID.parse(issuerDidStr);
-  const document = await didClient.resolveDid(did);
+  const document = await this.resolveDid(issuerDidString);
+  const did = document.id();
 
   document.unrevokeCredentials(
     did.join(issuerRevokeFragment),
     issuerRevokeIndex,
   );
-  const { document: published } = await this.publishDid({ document });
+  const published = await this.publishDid({ document });
 
-  return { document: published };
+  return published;
 }

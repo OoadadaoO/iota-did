@@ -47,13 +47,13 @@ yarn examples build
 
 Run the example `apps/examples`
 
-- Create/Edit **DID doument**, key info stored in `apps/examples/db/test.json`
+- Create/Edit **DID doument**, wallet and key storage placed in [`./wallet/test`](./wallet/test/)
 
   ```bash
   yarn examples test:did
   ```
 
-- Create/Validate/Revoke **Verifiable Credential** and **Verifiable Presentation** , key info stored in `apps/examples/db/issuer.json` and `apps/examples/db/holder.json`
+- Create/Validate/Revoke **Verifiable Credential** and **Verifiable Presentation**, wallet and key storage placed in [`./wallet/issuer`](./wallet/issuer/) and [`./wallet/holder`](./wallet/holder/)
 
   ```bash
   yarn examples test:vc_vp

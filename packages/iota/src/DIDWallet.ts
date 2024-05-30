@@ -12,7 +12,7 @@ import {
 import { type Client as ClientWasm } from "@iota/sdk-wasm/node/lib/index";
 
 import { DIDAddress } from "./DIDAddress";
-import { DidDb, KeyIdDb } from "./db";
+import { KeyIdDb } from "./db";
 import { resolveDid, validateVC, validateVP } from "./methods";
 
 export type DIDWalletOptions = Omit<
@@ -22,7 +22,6 @@ export type DIDWalletOptions = Omit<
   password: {
     stronghold: string;
     keyIdDb?: string;
-    didDb?: string;
   };
 };
 
@@ -35,7 +34,6 @@ export class DIDWallet extends Wallet {
   #didClient?: IotaIdentityClient;
   #secretManager?: SecretManager;
   #keyIdDb: KeyIdDb;
-  #didDb: DidDb;
   constructor(options: DIDWalletOptions) {
     const storagePath =
       options.storagePath?.replace(/\/$/, "") ||
@@ -54,12 +52,8 @@ export class DIDWallet extends Wallet {
     this.meta = {};
     this.#secretManagerType = walletOptions.secretManager;
     this.#keyIdDb = new KeyIdDb({
-      filename: `${storagePath}/keyid${options.password.keyIdDb ? "" : ".json"}`,
+      filename: `${storagePath}/_keyid${options.password.keyIdDb ? "" : ".json"}`,
       password: options.password.keyIdDb,
-    });
-    this.#didDb = new DidDb({
-      filename: `${storagePath}/did${options.password.didDb ? "" : ".json"}`,
-      password: options.password.didDb,
     });
   }
 
@@ -95,32 +89,26 @@ export class DIDWallet extends Wallet {
     return this.#keyIdDb;
   }
 
-  async getDidDb(): Promise<DidDb> {
-    await this.#didDb.read();
-    return this.#didDb;
-  }
-
   async getDIDAddress(
-    accountAlias: string,
+    accountIndex: number,
     addressIndex: number,
   ): Promise<DIDAddress> {
     let account;
     try {
-      account = await super.getAccount(accountAlias);
+      account = await super.getAccount(accountIndex);
     } catch (error) {
-      account = await super.createAccount({ alias: accountAlias });
+      account = await super.createAccount({});
     }
-    const { index: accountIndex } = account.getMetadata();
+    const { index } = account.getMetadata();
     const client = await this.getClient();
     return new DIDAddress({
       secretManagerType: this.#secretManagerType,
-      accountIndex,
+      accountIndex: index,
       addressIndex,
       client,
       didClient: await this.getDidClient(),
       secretManager: await this.getSecretManager(),
       keyIdDb: await this.getKeyIdDb(),
-      didDb: await this.getDidDb(),
     });
   }
 

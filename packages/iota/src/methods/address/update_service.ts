@@ -1,27 +1,25 @@
 import {
-  type IService,
   Service,
-  IotaDID,
   Timestamp,
   RevocationBitmap,
+  type IotaDocument,
+  type IService,
 } from "@iota/identity-wasm/node/index";
 
 import type { DIDAddress } from "../..";
 
 export async function insertService(
   this: DIDAddress,
-  didStr: string,
+  didString: string,
   fragment: string,
   serviceOptions?: Omit<IService, "id">,
-) {
-  const didClient = await this.getDidClient();
-
+): Promise<IotaDocument> {
   // check input
   if (!fragment.startsWith("#")) fragment = `#${fragment}`;
 
   // Parse the DID and resolve the DID document.
-  const did = IotaDID.parse(didStr);
-  const document = await didClient.resolveDid(did);
+  const document = await this.resolveDid(didString);
+  const did = document.id();
 
   // Update the DID document with the new service.
   if (!serviceOptions) throw new Error("Service options not provided");
@@ -32,44 +30,40 @@ export async function insertService(
   document.insertService(service);
 
   document.setMetadataUpdated(Timestamp.nowUTC());
-  const { document: published } = await this.publishDid({ document });
-  return { document: published };
+  const published = await this.publishDid({ document });
+  return published;
 }
 
 export async function removeService(
   this: DIDAddress,
-  didStr: string,
+  didString: string,
   fragment: string,
-) {
-  const didClient = await this.getDidClient();
-
+): Promise<IotaDocument> {
   // check input
   if (!fragment.startsWith("#")) fragment = `#${fragment}`;
 
   // Parse the DID and resolve the DID document.
-  const did = IotaDID.parse(didStr);
-  const document = await didClient.resolveDid(did);
+  const document = await this.resolveDid(didString);
+  const did = document.id();
 
   document.removeService(did.join(fragment));
 
   document.setMetadataUpdated(Timestamp.nowUTC());
-  const { document: published } = await this.publishDid({ document });
-  return { document: published };
+  const published = await this.publishDid({ document });
+  return published;
 }
 
 export async function insertRevokeService(
   this: DIDAddress,
-  didStr: string,
+  didString: string,
   fragment: string,
-) {
-  const didClient = await this.getDidClient();
-
+): Promise<IotaDocument> {
   // check input
   if (!fragment.startsWith("#")) fragment = `#${fragment}`;
 
   // Parse the DID and resolve the DID document.
-  const did = IotaDID.parse(didStr);
-  const document = await didClient.resolveDid(did);
+  const document = await this.resolveDid(didString);
+  const did = document.id();
 
   // Update the DID document with the new service.
   // Create a new empty revocation bitmap. No credential is revoked yet.
@@ -82,6 +76,6 @@ export async function insertRevokeService(
   document.insertService(revocationService);
 
   document.setMetadataUpdated(Timestamp.nowUTC());
-  const { document: published } = await this.publishDid({ document });
-  return { document: published };
+  const published = await this.publishDid({ document });
+  return published;
 }

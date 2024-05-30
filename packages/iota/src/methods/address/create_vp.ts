@@ -1,5 +1,4 @@
 import {
-  IotaDID,
   JwsSignatureOptions,
   JwtPresentationOptions,
   Presentation,
@@ -11,20 +10,30 @@ import {
 
 import type { DIDAddress } from "../..";
 
+/**
+ * @example
+ *
+ * ```ts
+ * const presentationData = {
+ *   holder: holderDidStr,
+ *   verifiableCredential: [credentialJwt],
+ * };
+ * const jwsSignatureOptions = { nonce };
+ * const jwtPresentationOptions = { expirationDate: expires };
+ * ```
+ */
 export async function createVP(
   this: DIDAddress,
-  holderDidStr: string,
+  holderDidString: string,
   holderFragment: string,
   presentationData: IPresentation,
   jwsSignatureOptions?: IJwsSignatureOptions,
   jwtPresentationOptions?: IJwtPresentationOptions,
-): Promise<{ vp: Jwt }> {
-  const didClient = await this.getDidClient();
+): Promise<Jwt> {
   const storage = await this.getStorage();
 
   // Parse the DID and resolve the DID document.
-  const did = IotaDID.parse(holderDidStr);
-  const document = await didClient.resolveDid(did);
+  const document = await this.resolveDid(holderDidString);
 
   // // Some example presentation data
   // const presentationData = {
@@ -47,5 +56,5 @@ export async function createVP(
     new JwtPresentationOptions(jwtPresentationOptions),
   );
 
-  return { vp: presentationJwt };
+  return presentationJwt;
 }

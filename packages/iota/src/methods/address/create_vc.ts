@@ -1,6 +1,5 @@
 import {
   Credential,
-  IotaDID,
   JwsSignatureOptions,
   type IJwsSignatureOptions,
   type ICredential,
@@ -9,40 +8,44 @@ import {
 
 import type { DIDAddress } from "../..";
 
+/**
+ * @example
+ *
+ * Create a `UniversityDegree` credential with RevocationBitmap for Alice.
+ *
+ * ```ts
+ * const credentialData = {
+ *   id: "https://example.edu/credentials/3732",
+ *   type: "UniversityDegreeCredential",
+ *   credentialStatus: {
+ *     id: didStr.join("#like-revoked"),
+ *     type: RevocationBitmap.type(),
+ *     revocationBitmapIndex: "CREDENTIAL_INDEX",
+ *   },
+ *   issuer: didStr,
+ *   credentialSubject: {
+ *     id: "subjectDid",
+ *     name: "Alice",
+ *     degreeName: "Bachelor of Science and Arts",
+ *     degreeType: "BachelorDegree",
+ *     GPA: "4.0",
+ *   },
+ * };
+ * const customClaims = { exp: Math.trunc(Date.now() / 1000 + 60 * 10) };
+ * ```
+ */
 export async function createVC(
   this: DIDAddress,
-  issuerDidStr: string,
+  issuerDidString: string,
   issuerFragment: string,
   credentialData: ICredential,
   jwsSignatureOptions?: IJwsSignatureOptions,
   customClaims?: Record<string, any>,
-): Promise<{ vc: Jwt }> {
-  const didClient = await this.getDidClient();
+): Promise<Jwt> {
   const storage = await this.getStorage();
 
   // Parse the DID and resolve the DID document.
-  const did = IotaDID.parse(issuerDidStr);
-  const document = await didClient.resolveDid(did);
-
-  // // Some example credential data
-  // // Create a `UniversityDegree` credential with RevocationBitmap for Alice.
-  // const credential = {
-  //   id: "https://example.edu/credentials/3732",
-  //   type: "UniversityDegreeCredential",
-  //   credentialStatus: {
-  //     id: didStr.join("#like-revoked"),
-  //     type: RevocationBitmap.type(),
-  //     revocationBitmapIndex: "CREDENTIAL_INDEX",
-  //   },
-  //   issuer: didStr,
-  //   credentialSubject: {
-  //     id: "subjectDid",
-  //     name: "Alice",
-  //     degreeName: "Bachelor of Science and Arts",
-  //     degreeType: "BachelorDegree",
-  //     GPA: "4.0",
-  //   },
-  // };
+  const document = await this.resolveDid(issuerDidString);
 
   // Create an unsigned `UniversityDegree` credential for Alice.
   // The issuer also chooses a unique `RevocationBitmap` index to be able to revoke it later.
@@ -57,5 +60,5 @@ export async function createVC(
     customClaims,
   );
 
-  return { vc: credentialJwt };
+  return credentialJwt;
 }

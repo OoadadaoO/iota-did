@@ -5,7 +5,7 @@ import type {
 } from "@iota/identity-wasm/node/index";
 import type { Client, SecretManager, SecretManagerType } from "@iota/sdk";
 
-import type { KeyIdDb, DidDb } from "./db";
+import type { KeyIdDb } from "./db";
 import {
   resolveDid,
   validateVC,
@@ -28,6 +28,7 @@ import {
   createVP,
   revokeVC,
   unrevokeVC,
+  getDids,
 } from "./methods";
 import { buildStorage } from "./storage";
 import { toDidIndex, toKeyIdIndex } from "./util";
@@ -42,7 +43,6 @@ export type DIDAddressOptions = {
   didClient: IotaIdentityClient;
   secretManager: SecretManager;
   keyIdDb: KeyIdDb;
-  didDb: DidDb;
 };
 
 export type DIDAddressMetadata = {
@@ -57,7 +57,6 @@ export class DIDAddress {
   #didClient: IotaIdentityClient;
   #secretManager: SecretManager;
   #keyIdDb: KeyIdDb;
-  #didDb: DidDb;
   #storage: Storage;
   constructor(options: DIDAddressOptions) {
     this.meta = {
@@ -69,7 +68,6 @@ export class DIDAddress {
     this.#didClient = options.didClient;
     this.#secretManager = options.secretManager;
     this.#keyIdDb = options.keyIdDb;
-    this.#didDb = options.didDb;
     this.#storage = buildStorage(
       options.accountIndex,
       options.secretManager,
@@ -99,10 +97,6 @@ export class DIDAddress {
 
   async getKeyIdDb() {
     return this.#keyIdDb;
-  }
-
-  async getDidDb() {
-    return this.#didDb;
   }
 
   async getStorage() {
@@ -144,6 +138,7 @@ export class DIDAddress {
   validateVC = validateVC.bind(this);
   validateVP = validateVP.bind(this);
 
+  getDids = getDids.bind(this);
   publishDid = publishDid.bind(this);
   createDid = createDid.bind(this);
   deleteDid = deleteDid.bind(this);
