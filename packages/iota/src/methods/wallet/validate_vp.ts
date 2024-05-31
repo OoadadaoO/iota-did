@@ -3,7 +3,6 @@
 import {
   EdDSAJwsVerifier,
   FailFast,
-  JwsVerificationOptions,
   JwtCredentialValidationOptions,
   JwtCredentialValidator,
   JwtPresentationValidationOptions,
@@ -12,7 +11,8 @@ import {
   SubjectHolderRelationship,
   type CoreDID,
   type Credential,
-  type IJwsVerificationOptions,
+  type IJwtPresentationValidationOptions,
+  type IJwtCredentialValidationOptions,
   type Jwt,
   type Presentation,
 } from "@iota/identity-wasm/node/index";
@@ -23,10 +23,12 @@ import type { DIDWallet } from "../../DIDWallet";
 export async function validateVP(
   this: DIDWallet | DIDAddress,
   presentationJwt: Jwt,
-  jwsVerificationOptions?: IJwsVerificationOptions,
+  jwtPresentationVerificationOptions?: IJwtPresentationValidationOptions,
+  jwtCredentialValidationOptions?: IJwtCredentialValidationOptions,
 ): Promise<{
   presentation: Presentation;
   credentials: Credential[];
+  rawCredentials: Jwt[];
 }> {
   const didClient = await this.getDidClient();
 
@@ -36,32 +38,29 @@ export async function validateVP(
   });
   const presentationHolderDID: CoreDID =
     JwtPresentationValidator.extractHolder(presentationJwt);
-  const resolvedHolder = await resolver.resolve(
-    presentationHolderDID.toString(),
-  );
 
   // Validate presentation. Note that this doesn't validate the included credentials.
   const presentationValidator = new JwtPresentationValidator(
     new EdDSAJwsVerifier(),
   );
-  const jwtPresentationValidationOptions = new JwtPresentationValidationOptions(
-    {
-      presentationVerifierOptions: new JwsVerificationOptions(
-        jwsVerificationOptions,
-      ),
-    },
+  const resolvedHolder = await resolver.resolve(
+    presentationHolderDID.toString(),
+  );
+  const presentationValidationOptions = new JwtPresentationValidationOptions(
+    jwtPresentationVerificationOptions,
   );
   const decodedPresentation = presentationValidator.validate(
     presentationJwt,
     resolvedHolder,
-    jwtPresentationValidationOptions,
+    presentationValidationOptions,
   );
 
   // Validate credentials in the presentation.
   const credentialValidator = new JwtCredentialValidator(
     new EdDSAJwsVerifier(),
   );
-  const validationOptions = new JwtCredentialValidationOptions({
+  const credentialValidationOptions = new JwtCredentialValidationOptions({
+    ...jwtCredentialValidationOptions,
     subjectHolderRelationship: [
       presentationHolderDID.toString(),
       SubjectHolderRelationship.AlwaysSubject, // holder is always the subject
@@ -95,7 +94,7 @@ export async function validateVP(
     const res = credentialValidator.validate(
       jwtCredentials[i],
       resolvedIssuers[i],
-      validationOptions,
+      credentialValidationOptions,
       FailFast.FirstError,
     );
     decodeCredentials.push(res.credential());
@@ -104,5 +103,6 @@ export async function validateVP(
   return {
     presentation: decodedPresentation.presentation(),
     credentials: decodeCredentials,
+    rawCredentials: jwtCredentials,
   };
 }

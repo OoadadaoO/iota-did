@@ -6,15 +6,16 @@
   "private": true,
   "workspaces": [
     "apps/*",
-    "packages/*"
+    "packages/*",
+    "examples/"
   ],
   "scripts": {
     "test": "yarn workspace @did/test",
     "examples": "yarn workspace @did/examples",
     "iota": "yarn workspace @did/iota",
     "lowdb": "yarn workspace @did/lowdb",
-    "univ-db": "yarn workspace @did/univ-db",
-    "user-db": "yarn workspace @did/user-db",
+    "org-db": "yarn workspace @did/org-db",
+    "wallet-db": "yarn workspace @did/wallet-db",
     "lint": "eslint ./apps/* ./packages/*",
     "format": "prettier --write ./apps/*/src ./packages/*/src",
     "type-check": "tsc --noEmit",

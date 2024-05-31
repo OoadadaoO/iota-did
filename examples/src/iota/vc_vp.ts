@@ -3,6 +3,8 @@ import {
   IotaDID,
   RevocationBitmap,
   Timestamp,
+  StatusCheck,
+  JwsVerificationOptions,
 } from "@iota/identity-wasm/node/index";
 
 import { env } from "./env";
@@ -98,6 +100,8 @@ try {
   console.log(`Revoke Failed! Credential > `, ret.credential, "\n");
 } catch (e) {
   console.log(`Revoke successfully! Error during validation: ${e}`, "\n");
+  ret = await holderAddress.validateVC(vc, { status: StatusCheck.SkipAll });
+  console.log(`Revoke Credential > `, ret.credential, "\n");
 }
 
 // Unrevoke the VC
@@ -129,7 +133,9 @@ const vp = await holderAddress.createVP(
 console.log("VP > ", vp.toJSON(), "\n");
 
 // Validate the VP
-ret = await iDidAddress.validateVP(vp, { nonce });
+ret = await iDidAddress.validateVP(vp, {
+  presentationVerifierOptions: new JwsVerificationOptions({ nonce }),
+});
 console.log(
   "Presentation > ",
   JSON.stringify(

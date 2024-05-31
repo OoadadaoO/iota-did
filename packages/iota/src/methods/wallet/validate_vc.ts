@@ -5,6 +5,7 @@ import {
   JwtCredentialValidator,
   Resolver,
   type Credential,
+  type IJwtCredentialValidationOptions,
   type Jwt,
 } from "@iota/identity-wasm/node/index";
 
@@ -14,6 +15,7 @@ import type { DIDWallet } from "../../DIDWallet";
 export async function validateVC(
   this: DIDWallet | DIDAddress,
   credentialJwt: Jwt,
+  jwtCredentialValidationOptions?: IJwtCredentialValidationOptions,
 ): Promise<{ credential: Credential }> {
   const didClient = await this.getDidClient();
 
@@ -31,7 +33,7 @@ export async function validateVC(
   const res = jwtCredentialValidator.validate(
     credentialJwt,
     resolvedHolder,
-    new JwtCredentialValidationOptions(),
+    new JwtCredentialValidationOptions(jwtCredentialValidationOptions),
     FailFast.FirstError,
   );
 

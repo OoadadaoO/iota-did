@@ -7,8 +7,13 @@
     "test:vc_vp": "tsx src/iota/vc_vp.ts",
     "dev": "tsx watch src/index.ts",
     "build": "tsc --build",
-    "start": "node --import ../../loader.js dist/index.js"
+    "start": "node --import ../loader.js dist/index.js"
   },
   "type": "module",
-  "devDependencies": {}
+  "devDependencies": {},
+  "dependencies": {
+    "@iota/identity-wasm": "^1.2.0",
+    "@iota/sdk": "^1.1.5",
+    "@iota/sdk-wasm": "^1.1.3"
+  }
 }
