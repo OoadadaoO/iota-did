@@ -3,7 +3,7 @@ import {
   IotaDID,
   RevocationBitmap,
   Timestamp,
-} from "@iota/identity-wasm/node";
+} from "@iota/identity-wasm/node/index";
 
 import { env } from "./env";
 import { userIntialize } from "./utils";
@@ -18,7 +18,8 @@ const iDidWallet = await initializeWallet(
 );
 await userIntialize(iDidWallet);
 const iDidAddress = await iDidWallet.getDIDAddress(0, 0);
-const [issuerDid] = await iDidAddress.getDids();
+const [issuerDoc] = await iDidAddress.getDids();
+const issuerDid = issuerDoc.id().toString();
 const issuerFragment = (await iDidAddress.resolveDid(issuerDid))
   .methods()[0]
   .id()
@@ -32,7 +33,8 @@ const holderWallet = await initializeWallet(
 );
 await userIntialize(holderWallet);
 const holderAddress = await holderWallet.getDIDAddress(0, 0);
-const [holderDid] = await holderAddress.getDids();
+const [holderDoc] = await holderAddress.getDids();
+const holderDid = holderDoc.id().toString();
 const holderFragment = (await holderAddress.resolveDid(holderDid))
   .methods()[0]
   .id()

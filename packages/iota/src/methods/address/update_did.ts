@@ -7,7 +7,7 @@ import { type AliasOutput, Utils, type IRent } from "@iota/sdk";
 
 import type { DIDAddress } from "../../DIDAddress";
 
-export async function getDids(this: DIDAddress): Promise<string[]> {
+export async function getDids(this: DIDAddress): Promise<IotaDocument[]> {
   const client = await this.getClient();
 
   const bech32Hrp = await this.getBech32Hrp();
@@ -19,7 +19,16 @@ export async function getDids(this: DIDAddress): Promise<string[]> {
     (output) => `did:iota:${bech32Hrp}:${(output.output as any).aliasId}`,
   );
 
-  return dids;
+  const documents: IotaDocument[] = [];
+  for (const did of dids) {
+    try {
+      documents.push(await this.resolveDid(did));
+    } catch (error) {
+      // ignore
+    }
+  }
+
+  return documents;
 }
 
 export async function createDid(this: DIDAddress): Promise<IotaDocument> {

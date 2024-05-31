@@ -5,7 +5,7 @@ import {
 import type { SecretManager } from "@iota/sdk";
 
 import type { KeyIdDb } from "../db";
-import { toKeyIdIndex } from "../util";
+import { toKeyIdIndex } from "../utils";
 import { buildJwk } from "./utils";
 
 export type KeyIdFileStoreOptions = {

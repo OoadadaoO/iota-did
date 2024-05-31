@@ -31,7 +31,7 @@ import {
   getDids,
 } from "./methods";
 import { buildStorage } from "./storage";
-import { toDidIndex, toKeyIdIndex } from "./util";
+import { toDidIndex, toKeyIdIndex } from "./utils";
 
 export type DIDAddressOptions = {
   secretManagerType: SecretManagerType;

@@ -1,6 +1,12 @@
 import readlinePromises from "readline/promises";
 
-import { DIDWallet } from "@did/iota";
+import {
+  DIDWallet,
+  getAccountsData,
+  getClassfiedMethods,
+  getDidDocuments,
+  getServices,
+} from "@did/iota";
 import {
   MethodRelationship,
   MethodScope,
@@ -32,22 +38,15 @@ export async function initializeWallet(
 
   if (!createNewDid) return wallet;
 
-  const didAddress = await wallet.getDIDAddress(0, 0);
+  const walletDetails = await getWalletDetails(wallet);
+  console.log(`Wallet Details > ${JSON.stringify(walletDetails, null, 2)}\n`);
 
-  const accounts = await wallet.getAccounts();
-  const acc = [];
-  for (const account of accounts) {
-    acc.push({
-      meta: account.getMetadata(),
-      addrs: (await account.addresses()).map((addr) => addr.address),
-    });
-  }
-  console.log(`Accounts > ${JSON.stringify(acc, null, 2)}\n`);
+  const didAddress = await wallet.getDIDAddress(0, 0);
 
   const bech32Address = await didAddress.getBech32Address();
   console.log(`Address > ${bech32Address}\n`);
 
-  const dids = await didAddress.getDids();
+  const dids = (await didAddress.getDids()).map((doc) => doc.id().toString());
   console.log(`DIDs > ${JSON.stringify(dids, null, 2)}\n`);
 
   // ===========================================================================
@@ -120,10 +119,33 @@ export async function initializeWallet(
     `DID after insert service #revocation > ${JSON.stringify(ret, null, 2)}\n`,
   );
 
-  const newDids = await didAddress.getDids();
-  console.log(`DIDs > ${JSON.stringify(newDids, null, 2)}\n`);
+  const newWalletDetails = await getWalletDetails(wallet);
+  console.log(
+    `Wallet Details > ${JSON.stringify(newWalletDetails, null, 2)}\n`,
+  );
 
   return wallet;
+}
+
+export async function getWalletDetails(wallet: DIDWallet) {
+  const accounts = await getAccountsData(wallet);
+  const walletDetails = await Promise.all(
+    accounts.map(async (account) => ({
+      name: account.name,
+      index: account.index,
+      addresses: await Promise.all(
+        account.addresses.map(async (address) => ({
+          index: address.getMetadata().addressIndex,
+          documents: (await getDidDocuments(address)).map((doc) => ({
+            did: doc.id().toString(),
+            method: getClassfiedMethods(doc, true),
+            service: getServices(doc).map((s) => s.id().fragment()!),
+          })),
+        })),
+      ),
+    })),
+  );
+  return walletDetails;
 }
 
 export async function userIntialize(wallet: DIDWallet) {
