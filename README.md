@@ -20,7 +20,9 @@ Therefore, a decentralized and trustworthy identity authentication framework is 
 
 - `apps/` - Contains the applications and examples
 
-  - `examples/` - Examples that demonstrate the usage of the packages
+  - `org/` - Web application for organization
+
+  - `wallet/` - Web application for DID wallet
 
 - `packages/` - Contains the packages that are sharedd by the applications
 
@@ -28,12 +30,16 @@ Therefore, a decentralized and trustworthy identity authentication framework is 
 
   - `lowdb/` - Custom [lowdb](https://github.com/typicode/lowdb) for local storage
 
+- `examples/` - Examples that demonstrate the usage of the packages
+
 ## Get Started
 
 ### Prerequisites
 
 - Node.js v20
 - yarn 1.22
+
+👉 [Installation Guide](https://adada1024.notion.site/NodeJs-f9a83de221e64e46ba930a62246f2256)
 
 ### Clone the repository
 
@@ -72,3 +78,25 @@ Run the example in [`./examples`](./examples/package.json)
   ```bash
   yarn examples test:vc_vp
   ```
+
+## Intergration
+
+### [Firefly](https://github.com/iotaledger/firefly)
+
+1. Create a new profile in Firefly.
+
+2. Choose network > Custom network
+
+3. Network > Custom
+
+   Coin type > 4219 (for DID purpose)
+
+   Node Address > https://api.testnet.iotaledger.net
+
+4. Setup Profile > Restore > Use Stronghold backup
+
+5. Import the stronghold file from `./wallet/<target_wallet>/wallet.stronghold`
+
+6. Enter the password set in your .env file or script
+
+7. Finish the other profile setup

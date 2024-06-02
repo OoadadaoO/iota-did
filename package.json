@@ -10,6 +10,8 @@
     "examples/"
   ],
   "scripts": {
+    "org": "yarn workspace @did/org",
+    "wallet": "yarn workspace @did/wallet",
     "test": "yarn workspace @did/test",
     "examples": "yarn workspace @did/examples",
     "iota": "yarn workspace @did/iota",
