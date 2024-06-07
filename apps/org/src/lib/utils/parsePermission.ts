@@ -24,3 +24,12 @@ export function decodePermission(
     {} as Record<PermissionType, boolean>,
   );
 }
+
+export function encodePermission(
+  permission: Record<PermissionType, boolean>,
+): number {
+  return parseInt(
+    permissions.map((key) => (permission[key] ? "1" : "0")).join(""),
+    2,
+  );
+}

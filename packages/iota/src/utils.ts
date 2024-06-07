@@ -187,13 +187,25 @@ export async function getDidDocuments(address: DIDAddress) {
   return await address.getDids();
 }
 
+export type GetClassifiedMethodsResultBase<T> = {
+  authentication: T[];
+  assertion: T[];
+  keyAgreement: T[];
+  capabilityInvocation: T[];
+  capabilityDelegation: T[];
+};
+
+export type GetClassifiedMethodsResult<T extends boolean> = T extends true
+  ? GetClassifiedMethodsResultBase<string>
+  : GetClassifiedMethodsResultBase<VerificationMethod>;
+
 /**
  * Returns the classified VerificationMethods of a DID document.
  */
-export function getClassfiedMethods(
+export function getClassfiedMethods<T extends boolean>(
   didDocument: IotaDocument,
-  onlyFragment: boolean = false,
-) {
+  onlyFragment: T = false as T,
+): GetClassifiedMethodsResult<T> {
   const allMethods = didDocument.methods();
   const auth = didDocument.methods(MethodScope.Authentication());
   const assert = didDocument.methods(MethodScope.AssertionMethod());
@@ -214,7 +226,7 @@ export function getClassfiedMethods(
       keyAgreement: keyAgreement.map((m) => m.id().fragment()!),
       capabilityInvocation: capabilityInvocation.map((m) => m.id().fragment()!),
       capabilityDelegation: capabilityDelegation.map((m) => m.id().fragment()!),
-    };
+    } as GetClassifiedMethodsResult<T>;
   }
   return {
     authentication,
@@ -222,7 +234,7 @@ export function getClassfiedMethods(
     keyAgreement,
     capabilityInvocation,
     capabilityDelegation,
-  };
+  } as GetClassifiedMethodsResult<T>;
 }
 
 /**

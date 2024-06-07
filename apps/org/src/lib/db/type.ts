@@ -1,6 +1,7 @@
 /** All user */
 export type UserType = {
   id: string;
+  username: string;
   email: string;
   hashedPassword: string;
   /** Decimal of binary permission */
@@ -17,6 +18,8 @@ export type MemberCredentialType = {
   jwt: string;
   /** did of issuer */
   issuer: string;
+  /** Bitmap method */
+  revokeFragment: string;
   /** Bitmap index */
   revokeIndex: number;
 };

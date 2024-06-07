@@ -2,7 +2,6 @@
 
 import { type FormEvent, useState } from "react";
 
-import Link from "next/link";
 import { useRouter, useSearchParams } from "next/navigation";
 
 import axios from "axios";
@@ -116,19 +115,13 @@ export function SignUp() {
       </form>
       <p className="text-muted-foreground px-8 text-center text-sm">
         By clicking continue, you agree to our{" "}
-        <Link
-          href="#"
-          className="hover:text-primary underline underline-offset-4"
-        >
+        <a href="#" className="hover:text-primary underline underline-offset-4">
           Terms of Service
-        </Link>{" "}
+        </a>{" "}
         and{" "}
-        <Link
-          href="#"
-          className="hover:text-primary underline underline-offset-4"
-        >
+        <a href="#" className="hover:text-primary underline underline-offset-4">
           Privacy Policy
-        </Link>
+        </a>
         .
       </p>
     </div>

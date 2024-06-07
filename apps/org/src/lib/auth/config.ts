@@ -17,11 +17,11 @@ export const sessionToken: {
   expDiff: parseTimeToMilliSeconds(privateEnv.AUTH_EXPIRES),
   cookieName:
     privateEnv.NODE_ENV === "production"
-      ? `____Secure.${publicEnv.NEXT_PUBLIC_NAME}ss`
-      : `____Dev.${publicEnv.NEXT_PUBLIC_NAME}ss`,
+      ? `${publicEnv.NEXT_PUBLIC_NAME}_SST`
+      : `__Dev.${publicEnv.NEXT_PUBLIC_NAME}_SST`,
   cookieOptions: {
     httpOnly: true,
-    secure: privateEnv.NODE_ENV === "production",
+    secure: publicEnv.NEXT_PUBLIC_BASE_URL.startsWith("https"),
     sameSite: "lax",
   },
 };

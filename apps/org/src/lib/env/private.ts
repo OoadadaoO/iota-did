@@ -5,8 +5,8 @@ const privateEnvSchema = z.object({
   AUTH_SALT_ROUNDS: z.number(),
   AUTH_SECRET: z.string(),
   AUTH_EXPIRES: z.string(),
-  DB_FILEPATH: z.string(),
   DB_PASSWORD: z.string().optional(),
+  IOTA_EXPRESS_URL: z.string().url(),
 });
 
 type PrivateEnv = z.infer<typeof privateEnvSchema>;
@@ -16,8 +16,8 @@ export const privateEnv: PrivateEnv = {
   AUTH_SALT_ROUNDS: parseInt(process.env.AUTH_SALT_ROUNDS!),
   AUTH_SECRET: process.env.AUTH_SECRET!,
   AUTH_EXPIRES: process.env.AUTH_EXPIRES!,
-  DB_FILEPATH: process.env.DB_FILEPATH!,
   DB_PASSWORD: process.env.DB_PASSWORD!,
+  IOTA_EXPRESS_URL: process.env.IOTA_EXPRESS_URL!,
 };
 
 privateEnvSchema.parse(privateEnv);

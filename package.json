@@ -11,11 +11,13 @@
   ],
   "scripts": {
     "org": "yarn workspace @did/org",
+    "org-iota": "yarn workspace @did/org-iota",
     "wallet": "yarn workspace @did/wallet",
     "test": "yarn workspace @did/test",
     "examples": "yarn workspace @did/examples",
     "iota": "yarn workspace @did/iota",
     "lowdb": "yarn workspace @did/lowdb",
+    "types": "yarn workspace @did/types",
     "org-db": "yarn workspace @did/org-db",
     "wallet-db": "yarn workspace @did/wallet-db",
     "lint": "eslint ./apps/* ./packages/*",
@@ -32,7 +34,7 @@
     "eslint-config-prettier": "^9.1.0",
     "patch-package": "^8.0.0",
     "prettier": "^3.2.5",
-    "prettier-plugin-tailwindcss": "^0.5.14",
+    "prettier-plugin-tailwindcss": "^0.6.1",
     "tsx": "^4.10.4",
     "typescript": "^5.4.5"
   },

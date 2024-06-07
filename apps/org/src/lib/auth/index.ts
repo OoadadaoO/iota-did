@@ -6,8 +6,8 @@ import type { JWTPayload } from "jose";
 import { DataDb } from "../db";
 import type { UserType } from "../db/type";
 import { privateEnv } from "../env/private";
-import { decodePermission } from "../utils/decodePermission";
 import { Id } from "../utils/id";
+import { decodePermission } from "../utils/parsePermission";
 import { sessionToken } from "./config";
 import { decrypt, encrypt } from "./jwtCrypto";
 import type { Session, Token } from "./type";
@@ -23,8 +23,17 @@ export async function auth(): Promise<Session> {
   if (!token || !jwt) return { message: "Invalid token" };
 
   // validate & create session
-  const session = await getSession({ token });
-  return typeof session === "string" ? { message: session } : session;
+  return await getSession({ token });
+}
+
+/**
+ * lightweight token-based auth()
+ */
+export async function token(): Promise<Token | undefined> {
+  // get jwt/token from cookie
+  const { jwt, token } = await getToken();
+  if (!token || !jwt) return undefined;
+  return token;
 }
 
 type LoginParams = {
@@ -45,6 +54,7 @@ export async function login(params: LoginParams) {
       );
       user = {
         id,
+        username: params.email.split("@")[0],
         email: params.email,
         hashedPassword,
         permission: 0,
@@ -111,18 +121,19 @@ export async function getSession({
   token,
 }: {
   token: Token & JWTPayload;
-}): Promise<Session | string> {
+}): Promise<Session> {
   const { sub, exp } = token;
-  if (!sub || !exp) return "Invalid token";
+  if (!sub || !exp) return { message: "Invalid token" };
 
   // find user by id(sub)
   const db = await DataDb.getInstance();
   const existedUser = db.data.users[sub];
-  if (!existedUser) return "User not found";
+  if (!existedUser) return { message: "User not found" };
 
   return {
     user: {
       id: existedUser.id,
+      username: existedUser.username,
       email: existedUser.email,
       permission: existedUser.permission,
       did: existedUser.did,

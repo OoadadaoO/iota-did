@@ -4,13 +4,13 @@ import { sessionToken } from "@/lib/auth/config";
 import { decrypt, encrypt } from "@/lib/auth/jwtCrypto";
 import { applySetCookie } from "@/lib/utils/applySetCookie";
 
-import { decodePermission } from "./lib/utils/decodePermission";
+import { decodePermission } from "./lib/utils/parsePermission";
 
 const authMatch = /^\/auth\/.*$/;
 const adminForbid: RegExp[] = [];
 const memberForbid: RegExp[] = [/^\/admin\/.*$/];
 const partnerForbid: RegExp[] = [/^\/(admin|private)\/.*$/];
-const normalForbid: RegExp[] = [/^\/(admin|private|shared)\/.*$/];
+const normalForbid: RegExp[] = [/^\/(admin|private|shared|settings)\/.*$/];
 
 export async function middleware(request: NextRequest) {
   const res = NextResponse.next();
@@ -23,14 +23,14 @@ export async function middleware(request: NextRequest) {
   if (oldJwt) {
     // redirect to home page if on login & signup page
     if (authMatch.test(pathname))
-      return Response.redirect(
+      return NextResponse.redirect(
         new URL(searchParams.get("redirect") || "/", request.url),
       );
 
     // refresh JWT
     const expires = new Date(Date.now() + sessionToken.expDiff);
     const token = await decrypt(oldJwt);
-    if (!token) return Response.redirect(new URL("/", request.url));
+    if (!token) return NextResponse.redirect(new URL("/", request.url));
     const jwt = await encrypt(token, expires);
     res.cookies.set({
       name: sessionToken.cookieName,
@@ -45,18 +45,22 @@ export async function middleware(request: NextRequest) {
 
   // route protection by permission
   const auth = decodePermission(permission);
+  const reherf =
+    request.headers.get("referer") === request.url
+      ? "/"
+      : request.headers.get("referer") || "/";
   if (auth.admin) {
     if (adminForbid.some((r) => r.test(pathname)))
-      return Response.redirect(new URL("/", request.url));
+      return NextResponse.redirect(new URL(reherf, request.url));
   } else if (auth.member) {
     if (memberForbid.some((r) => r.test(pathname)))
-      return Response.redirect(new URL("/", request.url));
+      return NextResponse.redirect(new URL(reherf, request.url));
   } else if (auth.partner) {
     if (partnerForbid.some((r) => r.test(pathname)))
-      return Response.redirect(new URL("/", request.url));
+      return NextResponse.redirect(new URL(reherf, request.url));
   } else {
     if (normalForbid.some((r) => r.test(pathname)))
-      return Response.redirect(new URL("/", request.url));
+      return NextResponse.redirect(new URL(reherf, request.url));
   }
 
   applySetCookie(request, res);
