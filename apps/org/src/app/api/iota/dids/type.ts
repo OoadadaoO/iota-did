@@ -1,1 +1,1 @@
-export type { GetDIDsResponse, GetDIDsResponseOk } from "@did/org-iota/types";
+export type { GetDIDsResponse, GetDIDsResponseOk } from "@did/org-server/types";

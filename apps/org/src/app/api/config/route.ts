@@ -6,7 +6,7 @@ import { auth } from "@/lib/auth";
 import { ConfigDb } from "@/lib/db";
 import { privateEnv } from "@/lib/env/private";
 import { decodePermission } from "@/lib/utils/parsePermission";
-import type { GetDIDsResponse } from "@did/org-iota/types";
+import type { GetDIDsResponse } from "@did/org-server/types";
 
 import type { PutConfigResponse } from "./type";
 import { putConfigSchema } from "./validator";
