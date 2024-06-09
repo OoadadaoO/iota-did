@@ -37,7 +37,7 @@ export async function removeRelationship(
   this: DIDAddress,
   didString: string,
   fragment: string,
-  relationship: MethodRelationship,
+  relationship: MethodRelationship[],
 ): Promise<IotaDocument> {
   // check input
   if (!fragment.startsWith("#")) fragment = `#${fragment}`;
@@ -45,7 +45,9 @@ export async function removeRelationship(
   const document = await this.resolveDid(didString);
   const did = document.id();
 
-  document.detachMethodRelationship(did.join(fragment), relationship);
+  relationship.forEach((rel) => {
+    document.detachMethodRelationship(did.join(fragment), rel);
+  });
 
   document.setMetadataUpdated(Timestamp.nowUTC());
   const published = await this.publishDid({ document });

@@ -15,9 +15,23 @@ export async function getDids(this: DIDAddress): Promise<IotaDocument[]> {
     { sender: await this.getBech32Address() },
   ]);
   const outputs = await client.getOutputsIgnoreErrors(outputsIds.items);
-  const dids = outputs.map(
-    (output) => `did:iota:${bech32Hrp}:${(output.output as any).aliasId}`,
-  );
+  const dids = outputs
+    .sort((a, b) => {
+      const ma = a.metadata;
+      const mb = b.metadata;
+      if (ma.milestoneIndexSpent && mb.milestoneIndexSpent) {
+        return ma.milestoneIndexSpent - mb.milestoneIndexSpent;
+      } else if (ma.milestoneTimestampSpent && mb.milestoneTimestampSpent) {
+        return ma.milestoneTimestampSpent - mb.milestoneTimestampSpent;
+      } else if (ma.milestoneIndexBooked !== mb.milestoneIndexBooked) {
+        return ma.milestoneIndexBooked - mb.milestoneIndexBooked;
+      } else if (ma.milestoneTimestampBooked !== mb.milestoneTimestampBooked) {
+        return ma.milestoneTimestampBooked - mb.milestoneTimestampBooked;
+      }
+      return ma.ledgerIndex - mb.ledgerIndex;
+    })
+
+    .map((output) => `did:iota:${bech32Hrp}:${(output.output as any).aliasId}`);
 
   const documents: IotaDocument[] = [];
   for (const did of dids) {

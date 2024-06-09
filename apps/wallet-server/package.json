@@ -1,0 +1,28 @@
+{
+  "name": "@did/wallet-server",
+  "version": "1.0.0",
+  "license": "MIT",
+  "scripts": {
+    "dev": "tsx watch src/app.ts",
+    "build": "tsc --build",
+    "start": "node --import ../../loader.js dist/app.js"
+  },
+  "type": "module",
+  "devDependencies": {
+    "@types/body-parser": "^1.19.5",
+    "@types/cors": "^2.8.17",
+    "@types/express": "^4.17.21"
+  },
+  "dependencies": {
+    "@did/iota": "1.0.0",
+    "@iota/identity-wasm": "1.2.0",
+    "@iota/sdk": "1.1.5",
+    "@iota/sdk-wasm": "1.1.3",
+    "axios": "^1.7.2",
+    "body-parser": "^1.20.2",
+    "cors": "^2.8.5",
+    "dotenv": "^16.4.5",
+    "express": "^4.19.2",
+    "zod": "^3.23.8"
+  }
+}

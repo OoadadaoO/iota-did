@@ -13,7 +13,7 @@
   "devDependencies": {},
   "dependencies": {
     "@iota/identity-wasm": "1.2.0",
-    "@iota/sdk": "1.0.4",
-    "@iota/sdk-wasm": "1.0.4"
+    "@iota/sdk": "1.1.5",
+    "@iota/sdk-wasm": "1.1.3"
   }
 }

@@ -3,44 +3,26 @@ import type { ResponseCookie } from "next/dist/compiled/@edge-runtime/cookies";
 import { base64url } from "jose";
 
 import { privateEnv } from "../env/private";
+import { publicEnv } from "../env/public";
+import { parseTimeToMilliSeconds } from "../utils/parseTimeToMilliSeconds";
 
 export const sessionToken: {
   secret: Uint8Array;
   protectedHeader: { alg: string; enc: string };
   expDiff: number;
-  cookieName: string;
+  baseCookieName: string;
+  cookieName: (sub: string) => string;
   cookieOptions: Partial<ResponseCookie>;
 } = {
-  secret: base64url.decode(privateEnv.AUTH_SECRET),
+  secret: base64url.decode(privateEnv.PASSWORD_SECRET),
   protectedHeader: { alg: "dir", enc: "A128CBC-HS256" },
-  expDiff: parseTimeToMilliSeconds(privateEnv.AUTH_EXPIRES),
-  cookieName:
-    privateEnv.NODE_ENV === "production" ? "____Secure.ss" : "__Dev.ss",
+  expDiff: parseTimeToMilliSeconds(privateEnv.PASSWORD_EXPIRES),
+  baseCookieName: privateEnv.NODE_ENV === "production" ? "WPSD" : "__Dev.WPSD",
+  cookieName: (sub: string) =>
+    privateEnv.NODE_ENV === "production" ? `WPSD_${sub}` : `__Dev.WPSD_${sub}`,
   cookieOptions: {
     httpOnly: true,
-    secure: privateEnv.NODE_ENV === "production",
+    secure: publicEnv.NEXT_PUBLIC_BASE_URL.startsWith("https://"),
     sameSite: "lax",
   },
 };
-
-function parseTimeToMilliSeconds(timeString: string) {
-  const units: { [unit: string]: number } = {
-    s: 1,
-    m: 60,
-    h: 3600,
-    d: 86400,
-    w: 604800,
-  };
-
-  const regex = /^(\d+)([smhdw])$/;
-  const match = regex.exec(timeString.toLowerCase());
-
-  if (!match) {
-    throw new Error("Invalid time string format");
-  }
-
-  const amount = parseInt(match[1]);
-  const unit = match[2];
-
-  return amount * (units[unit] || 60) * 1000;
-}

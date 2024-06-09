@@ -112,9 +112,9 @@ export type AccountData = {
 /**
  * Return the stored wallets.
  */
-export function getWalletsData(): WalletData[] {
-  const dirPath = "../../wallet";
-  const requiredFiles = ["wallet.stronghold", "_keyid.json"];
+export function getWalletsData(dirPath: string): WalletData[] {
+  // const dirPath = "../../wallet";
+  const requiredFiles = ["wallet.stronghold"];
   const wallets: WalletData[] = [];
 
   try {
@@ -124,8 +124,6 @@ export function getWalletsData(): WalletData[] {
       if (item.isDirectory()) {
         const folderPath = path.join(dirPath, item.name);
         const filesInFolder = fs.readdirSync(folderPath);
-        console.log("filesInFolder", filesInFolder);
-
         if (
           requiredFiles.every((requiredFile) =>
             filesInFolder.includes(requiredFile),
@@ -194,6 +192,57 @@ export type GetClassifiedMethodsResultBase<T> = {
   capabilityInvocation: T[];
   capabilityDelegation: T[];
 };
+
+export type Relationship =
+  | "-"
+  | "Authentication"
+  | "AssertionMethod"
+  | "KeyAgreement"
+  | "CapabilityDelegation"
+  | "CapabilityInvocation";
+export type GetMethodsResult = {
+  fragment: string;
+  controller: string;
+  relationship: Relationship;
+  text: string;
+}[];
+
+/**
+ * Returns the VerificationMethods of a DID document.
+ */
+export function getMethods(didDocument: IotaDocument): GetMethodsResult {
+  const allMethods = didDocument.methods();
+  const auth = didDocument.methods(MethodScope.Authentication());
+  const assert = didDocument.methods(MethodScope.AssertionMethod());
+  const key = didDocument.methods(MethodScope.KeyAgreement());
+  const delegate = didDocument.methods(MethodScope.CapabilityDelegation());
+  const invoke = didDocument.methods(MethodScope.CapabilityInvocation());
+  const specificMethods = methodUnion([auth, assert, key, delegate, invoke]);
+  const generalMethods = methodDifference(allMethods, specificMethods);
+  const methods: GetMethodsResult = [];
+  pushMethod(methods, generalMethods, "-");
+  pushMethod(methods, auth, "Authentication");
+  pushMethod(methods, assert, "AssertionMethod");
+  pushMethod(methods, key, "KeyAgreement");
+  pushMethod(methods, delegate, "CapabilityDelegation");
+  pushMethod(methods, invoke, "CapabilityInvocation");
+  return methods;
+}
+
+function pushMethod(
+  container: GetMethodsResult,
+  methods: VerificationMethod[],
+  scope: Relationship,
+) {
+  methods.forEach((method) => {
+    container.push({
+      fragment: method.id().fragment()!,
+      controller: method.controller().toString(),
+      relationship: scope,
+      text: method.toString(),
+    });
+  });
+}
 
 export type GetClassifiedMethodsResult<T extends boolean> = T extends true
   ? GetClassifiedMethodsResultBase<string>

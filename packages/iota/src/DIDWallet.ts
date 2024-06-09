@@ -2,11 +2,11 @@ import crypto from "crypto";
 
 import { IotaIdentityClient } from "@iota/identity-wasm/node/index";
 import {
+  StrongholdSecretManager,
   Utils,
   Wallet,
   type Client,
   type SecretManager,
-  type SecretManagerType,
   type WalletOptions,
 } from "@iota/sdk";
 import { type Client as ClientWasm } from "@iota/sdk-wasm/node/lib/index";
@@ -20,7 +20,7 @@ export type DIDWalletOptions = Omit<
   "secretManager"
 > & {
   password: {
-    stronghold: string;
+    stronghold?: string;
     keyIdDb?: string;
   };
 };
@@ -29,7 +29,7 @@ export type DIDWalletMetadata = Record<string, string>;
 
 export class DIDWallet extends Wallet {
   private meta: DIDWalletMetadata;
-  #secretManagerType: SecretManagerType;
+  #secretManagerType: StrongholdSecretManager;
   #client?: Client;
   #didClient?: IotaIdentityClient;
   #secretManager?: SecretManager;
@@ -50,7 +50,8 @@ export class DIDWallet extends Wallet {
     };
     super(walletOptions);
     this.meta = {};
-    this.#secretManagerType = walletOptions.secretManager;
+    this.#secretManagerType =
+      walletOptions.secretManager as StrongholdSecretManager;
     this.#keyIdDb = new KeyIdDb({
       filename: `${storagePath}/_keyid${options.password.keyIdDb ? "" : ".json"}`,
       password: options.password.keyIdDb,
@@ -59,6 +60,13 @@ export class DIDWallet extends Wallet {
 
   getMetadata(): DIDWalletMetadata {
     return this.meta;
+  }
+
+  setSecretManagerType(
+    fn: (secretManager: StrongholdSecretManager) => StrongholdSecretManager,
+  ) {
+    const newType = fn(this.#secretManagerType);
+    this.#secretManagerType.stronghold = newType.stronghold;
   }
 
   async getClient(): Promise<Client> {
