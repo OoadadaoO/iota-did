@@ -6,18 +6,22 @@ export type UserType = {
   hashedPassword: string;
   /** Decimal of binary permission */
   permission: number;
-  /** use for sign vc */
-  did?: string;
 };
 
 /** VC of member of self */
 export type MemberCredentialType = {
   id: string;
   userId: string;
+  /** did of user */
+  did: string;
   /** raw jwt string */
   jwt: string;
+  /** cred content */
+  content: string;
   /** did of issuer */
-  issuer: string;
+  issuerdid: string;
+  /** fragment of issuer */
+  issuerFragment: string;
   /** Bitmap method */
   revokeFragment: string;
   /** Bitmap index */

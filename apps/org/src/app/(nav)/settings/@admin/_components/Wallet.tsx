@@ -49,7 +49,7 @@ export function Wallet({ config: dbConfig }: Props) {
           <ScanFace className="text-muted-foreground h-4 w-4" />
         </CardHeader>
         <CardContent>
-          <div className="truncate font-mono text-2xl font-semibold tracking-tight">
+          <div className="break-all font-mono text-xl font-semibold tracking-tight">
             {config?.issueDid || "No DID"}
           </div>
           <p className="text-muted-foreground text-sm">
@@ -63,7 +63,7 @@ export function Wallet({ config: dbConfig }: Props) {
           <FilePen className="text-muted-foreground h-4 w-4" />
         </CardHeader>
         <CardContent>
-          <div className="truncate font-mono text-2xl font-semibold tracking-tight">
+          <div className="break-all font-mono text-xl font-semibold tracking-tight">
             {config?.issueFragment || "No Method"}
           </div>
           <p className="text-muted-foreground text-sm">
@@ -77,7 +77,7 @@ export function Wallet({ config: dbConfig }: Props) {
           <FileX2 className="text-muted-foreground h-4 w-4" />
         </CardHeader>
         <CardContent>
-          <div className="font-mono text-2xl font-semibold tracking-tight">
+          <div className="font-mono text-xl font-semibold tracking-tight">
             {config?.revokeFragment || "No Service"}
           </div>
           <p className="text-muted-foreground text-sm">

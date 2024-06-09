@@ -1,0 +1,1 @@
+{"version":3,"file":"types.d.ts","sourceRoot":"","sources":["../../../src/routes/vc/types.ts"],"names":[],"mappings":"AAAA,OAAO,KAAK,EAAE,QAAQ,EAAE,aAAa,EAAE,MAAM,UAAU,CAAC;AAExD,MAAM,MAAM,gBAAgB,GAAG,QAAQ,CAAC;IACtC,EAAE,EAAE;QACF,GAAG,EAAE,MAAM,CAAC;QACZ,OAAO,EAAE,MAAM,CAAC;KACjB,CAAC;CACH,CAAC,CAAC;AAEH,MAAM,MAAM,cAAc,GAAG,gBAAgB,GAAG,aAAa,CAAC"}

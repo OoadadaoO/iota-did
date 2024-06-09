@@ -12,8 +12,8 @@ const router = express.Router();
 router.get(
   "/",
   async (req: express.Request, res: TypedResponse<GetDIDsResponse>) => {
-    const { address } = await DIDWallet.getInstance();
     try {
+      const { address } = await DIDWallet.getInstance();
       const dids = (await address.getDids()).map((doc) => ({
         did: doc.id().toString(),
         method: getClassfiedMethods(doc, true),

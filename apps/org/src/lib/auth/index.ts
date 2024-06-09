@@ -136,7 +136,6 @@ export async function getSession({
       username: existedUser.username,
       email: existedUser.email,
       permission: existedUser.permission,
-      did: existedUser.did,
     },
     expires: new Date(exp * 1000),
   };
