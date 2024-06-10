@@ -9,7 +9,6 @@ import { privateEnv } from "@/lib/env/private";
 import type { GetWalletsResponse } from "./type";
 import { postWalletSchema } from "./validator";
 
-export const dynamic = "force-dynamic";
 export async function GET(): Promise<NextResponse<GetWalletsResponse>> {
   try {
     // get wallets

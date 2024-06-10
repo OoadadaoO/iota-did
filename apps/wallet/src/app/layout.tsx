@@ -5,7 +5,7 @@ import axios from "axios";
 
 import type { GetWalletsResponse } from "@/app/api/type";
 import { ThemeProvider } from "@/hook/ThemeProvider";
-import { publicEnv } from "@/lib/env/public";
+import { privateEnv } from "@/lib/env/private";
 import { cn } from "@/lib/utils/shadcn";
 
 import { WalletNav } from "./_components/WalletNav";
@@ -30,7 +30,7 @@ export default async function RootLayout({
   children: React.ReactNode;
 }>) {
   const res = await axios.get<GetWalletsResponse>(
-    `${publicEnv.NEXT_PUBLIC_BASE_URL}/api/iota/wallets`,
+    `${privateEnv.IOTA_EXPRESS_URL}/api/iota/wallets`,
   );
   return (
     <html lang="en" className="" suppressHydrationWarning>

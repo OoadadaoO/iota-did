@@ -1379,7 +1379,7 @@ function AddVcButton({
   };
 
   return (
-    <Dialog>
+    <Dialog onOpenChange={(o) => !o && setJwt("")}>
       <DialogTrigger asChild>
         <Button
           variant={"ghost"}
