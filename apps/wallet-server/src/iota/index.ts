@@ -26,7 +26,7 @@ export class DIDWallet extends DWallet {
         },
       });
       DIDWallet.#instances.set(name, newWallet);
-      // await newWallet.startBackgroundSync();
+      await newWallet.startBackgroundSync();
       console.log(`Constructed a new DIDWallet named ${name}.`);
     }
     return DIDWallet.#instances.get(name) as DIDWallet;
