@@ -23,6 +23,7 @@
   ],
   "rules": {
     "@typescript-eslint/consistent-type-imports": "warn",
+    "@typescript-eslint/no-explicit-any": "off",
     "react/react-in-jsx-scope": "off",
     "react/no-unescaped-entities": "off",
     "react/function-component-definition": [

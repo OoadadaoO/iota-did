@@ -6,6 +6,7 @@ import { CodeBlock, monokaiSublime, solarizedLight } from "react-code-blocks";
 import axios from "axios";
 import {
   BetweenHorizonalEnd,
+  Clipboard,
   CodeXml,
   FilePenLine,
   FilePlus2,
@@ -14,6 +15,7 @@ import {
   LoaderCircle,
   Power,
   PowerOff,
+  Send,
 } from "lucide-react";
 
 import type {
@@ -21,6 +23,7 @@ import type {
   GetDidsResponseOk,
   GetFaucetResponse,
   PostDidsResponse,
+  PostVcsResponse,
 } from "@/app/api/type";
 import {
   Accordion,
@@ -51,13 +54,15 @@ import {
   SelectValue,
 } from "@/components/ui/select";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
-import { beautifyJsonCode } from "@/lib/utils/beautifyCode";
+import { Textarea } from "@/components/ui/textarea";
+import { beautifyJson } from "@/lib/utils/beautifyCode";
 import { cn } from "@/lib/utils/shadcn";
 import type {
   Account,
   DeleteDidResponse,
   PatchDidResponse,
   PostServicesResponse,
+  PostVpResponse,
 } from "@did/wallet-server/types";
 
 type Did = GetDidsResponseOk["data"]["dids"][number];
@@ -70,12 +75,14 @@ type Props = {
   reload: boolean;
 };
 
-const defaultDid = {
+const defaultDid: Did = {
   did: "",
-  document: "",
   method: [],
-  deactive: false,
   service: [],
+  vc: [],
+  deactive: false,
+  json: {},
+  metadata: {},
 };
 
 export function Dashboard({
@@ -140,7 +147,7 @@ export function Dashboard({
             <div className="text-sm font-bold">Deposit</div>
           </div>
           <div className="flex flex-col items-stretch gap-3 p-6 pt-0">
-            <CopyAddressButton address={selectedAcc.address} />
+            {/* <CopyAddressButton address={selectedAcc.address} /> */}
             <GetFundsButton
               name={name}
               index={selectedAcc.index}
@@ -206,7 +213,7 @@ export function Dashboard({
             />
             <Accordion
               type="multiple"
-              defaultValue={["method", "service"]}
+              defaultValue={["method", "service", "vc"]}
               className="w-full"
             >
               <AccordionItem value="method" className="border-0">
@@ -234,11 +241,28 @@ export function Dashboard({
                   setNeedLogin={setNeedLogin}
                 />
               </AccordionItem>
-              <AccordionItem value="code" className="border-0">
-                <AccordionTrigger>Full Document</AccordionTrigger>
-                <DIDCodeContent
-                  code={beautifyJsonCode(selectedDid?.document)}
+              <AccordionItem value="vc" className="border-0">
+                <AccordionTrigger>Verifiable Credential</AccordionTrigger>
+                <VcsContent
+                  name={name}
+                  index={selectedAcc.index}
+                  selectedDid={selectedDid}
+                  setDids={setDids}
+                  setSelectedDid={setSelectedDid}
+                  setNeedLogin={setNeedLogin}
                 />
+              </AccordionItem>
+              <AccordionItem value="document" className="border-0">
+                <AccordionTrigger>Document</AccordionTrigger>
+                <AccordionContent className="font-mono">
+                  <JsonCode code={beautifyJson(selectedDid?.json)} />
+                </AccordionContent>
+              </AccordionItem>
+              <AccordionItem value="metadata" className="border-0">
+                <AccordionTrigger>Metadata</AccordionTrigger>
+                <AccordionContent className="font-mono">
+                  <JsonCode code={beautifyJson(selectedDid?.metadata)} />
+                </AccordionContent>
               </AccordionItem>
             </Accordion>
           </div>
@@ -249,19 +273,19 @@ export function Dashboard({
   );
 }
 
-function CopyAddressButton({ address }: { address: string }) {
-  return (
-    <Button
-      variant={"outline"}
-      className="hover:bg-background/20 border-foreground/50 w-full truncate bg-transparent px-2"
-      onClick={() => {
-        navigator.clipboard.writeText(address);
-      }}
-    >
-      Copy the address
-    </Button>
-  );
-}
+// function CopyAddressButton({ address }: { address: string }) {
+//   return (
+//     <Button
+//       variant={"outline"}
+//       className="hover:bg-background/20 border-foreground/50 w-full truncate bg-transparent px-2"
+//       onClick={() => {
+//         navigator.clipboard.writeText(address);
+//       }}
+//     >
+//       Copy the address
+//     </Button>
+//   );
+// }
 
 function GetFundsButton({
   name,
@@ -537,9 +561,9 @@ function DIDSelector({
           <SelectItem key={did.did} value={did.did} className="font-mono">
             <div className="flex items-center justify-start gap-2">
               {did.deactive ? (
-                <PowerOff size={16} className="text-red-500" />
+                <PowerOff size={16} className="w-4 min-w-4 text-red-500" />
               ) : (
-                <Power size={16} className="text-green-500" />
+                <Power size={16} className="w-4 min-w-4 text-green-500" />
               )}
               <p>{did.did}</p>
             </div>
@@ -585,10 +609,10 @@ function MethodsContent({
               <th className="px-2 pl-4 text-left text-sm font-normal">
                 Fragment
               </th>
-              <th className="px-2 text-center text-sm font-normal">
+              <th className="px-2 text-left text-sm font-normal">
                 Relationship
               </th>
-              <th className="px-2 text-center text-sm font-normal"></th>
+              <th className="w-10 px-2 text-center text-sm font-normal"></th>
               <th className="w-10 px-2 pr-4 text-center text-sm font-normal">
                 <AddMethodButton
                   name={name}
@@ -646,7 +670,7 @@ function AddMethodButton({
     <Button
       variant={"ghost"}
       size={"icon"}
-      className="hover:bg-background/0"
+      className="hover:bg-background/0 w-6"
       disabled={loading}
       onClick={async (e) => {
         e.preventDefault();
@@ -702,6 +726,7 @@ function MethodRow({
   setSelectedDid: React.Dispatch<React.SetStateAction<Did>>;
   setNeedLogin: React.Dispatch<React.SetStateAction<number>>;
 }) {
+  const methodJson = beautifyJson(method.json);
   const originScope = (
     scopes.find((s) => s.label === method.relationship)?.value || -1
   ).toString();
@@ -761,7 +786,7 @@ function MethodRow({
     <tr key={method.fragment} className="border-border border-b">
       <td className="p-2 pl-4">
         <h3
-          className="select-none break-all font-mono text-sm hover:cursor-pointer"
+          className="select-none break-all font-mono hover:cursor-pointer"
           onClick={() => {
             navigator.clipboard.writeText(method.fragment);
           }}
@@ -769,7 +794,7 @@ function MethodRow({
           {method.fragment}
         </h3>
       </td>
-      <td className="p-2 text-center">
+      <td className="p-2">
         <p className="text-sm">{method.relationship}</p>
       </td>
       <td className="p-2 text-center">
@@ -778,10 +803,17 @@ function MethodRow({
             <CodeXml size={16} className="mx-auto hover:cursor-pointer" />
           </DropdownMenuTrigger>
           <DropdownMenuContent
-            className="bg-muted max-w-lg backdrop-blur-xl md:max-w-2xl"
+            className="bg-muted relative max-w-screen-sm backdrop-blur-xl lg:max-w-screen-md xl:max-w-screen-lg 2xl:max-w-screen-xl"
             side={"left"}
           >
-            <JsonCode code={beautifyJsonCode(method.text)} />
+            <Clipboard
+              size={16}
+              className="hover:text-foreground text-muted-foreground absolute right-4 top-4 cursor-pointer"
+              onClick={() => {
+                navigator.clipboard.writeText(methodJson);
+              }}
+            />
+            <JsonCode code={methodJson} />
           </DropdownMenuContent>
         </DropdownMenu>
       </td>
@@ -868,9 +900,9 @@ function ServicesContent({
               <th className="px-2 pl-4 text-left text-sm font-normal">
                 Fragment
               </th>
-              <th className="px-2 text-center text-sm font-normal">Type</th>
-              <th className="px-2 text-center text-sm font-normal">Endpoint</th>
-              <th className="px-2 text-center text-sm font-normal"></th>
+              <th className="px-2 text-left text-sm font-normal">Type</th>
+              <th className="px-2 text-left text-sm font-normal">Endpoint</th>
+              <th className="w-10 px-2 text-center text-sm font-normal"></th>
               <th className="w-10 px-2 pr-4 text-center text-sm font-normal">
                 <AddServiceButton
                   name={name}
@@ -929,6 +961,7 @@ function AddServiceButton({
 
   const handleGeneralSubmit = async (e: React.FormEvent<HTMLFormElement>) => {
     e.preventDefault();
+    if (!frag || !type || !endpoint) return;
     try {
       setLoading(true);
       const res = await axios.post<PostServicesResponse>(
@@ -946,6 +979,9 @@ function AddServiceButton({
       const did = res.data.data.did;
       setSelectedDid(did);
       setDids((prev) => prev.map((d) => (d.did === did.did ? did : d)));
+      setFrag("");
+      setType("");
+      setEndpoint("");
     } catch (error) {
       console.error(error);
       alert("Failed to add a new service");
@@ -956,6 +992,7 @@ function AddServiceButton({
 
   const handleRevokeSubmit = async (e: React.FormEvent<HTMLFormElement>) => {
     e.preventDefault();
+    if (!frag) return;
     try {
       setLoading(true);
       const res = await axios.post<PostServicesResponse>(
@@ -973,6 +1010,7 @@ function AddServiceButton({
       const did = res.data.data.did;
       setSelectedDid(did);
       setDids((prev) => prev.map((d) => (d.did === did.did ? did : d)));
+      setFrag("");
     } catch (error) {
       console.error(error);
       alert("Failed to add a new revocation service");
@@ -987,7 +1025,7 @@ function AddServiceButton({
         <Button
           variant={"ghost"}
           size={"icon"}
-          className="hover:bg-background/0"
+          className="hover:bg-background/0 w-6"
         >
           {loading ? (
             <Loader size={20} className="animate-spin" />
@@ -998,14 +1036,21 @@ function AddServiceButton({
       </DialogTrigger>
       <DialogContent className="max-w-lg border-0 bg-transparent shadow-none">
         <Tabs defaultValue="general" className="max-w-lg">
-          <TabsList className="mb-2 grid w-full grid-cols-2 border shadow-md">
-            <TabsTrigger value="general">General</TabsTrigger>
-            <TabsTrigger value="revoke">RevocationBitmap2022</TabsTrigger>
+          <TabsList className="bg-background text-muted-foreground grid w-full grid-cols-2">
+            <TabsTrigger
+              value="general"
+              className="data-[state=active]:bg-muted data-[state=active]:text-foreground"
+            >
+              General
+            </TabsTrigger>
+            <TabsTrigger
+              value="revoke"
+              className="data-[state=active]:bg-muted data-[state=active]:text-foreground"
+            >
+              RevocationBitmap2022
+            </TabsTrigger>
           </TabsList>
-          <TabsContent
-            value="general"
-            className="bg-background rounded-md border shadow-md"
-          >
+          <TabsContent value="general" className="bg-background rounded-md">
             <div className="p-6 text-xl font-bold">
               Add Service
               <p className="text-muted-foreground text-sm font-normal">
@@ -1051,7 +1096,7 @@ function AddServiceButton({
                   variant={"outline"}
                   className="hover:bg-accent/60 bg-accent/40"
                   type="submit"
-                  disabled={loading}
+                  disabled={loading || !frag || !type || !endpoint}
                 >
                   {loading ? (
                     <Loader className="animate-spin" />
@@ -1062,10 +1107,7 @@ function AddServiceButton({
               </div>
             </form>
           </TabsContent>
-          <TabsContent
-            value="revoke"
-            className="bg-background rounded-md border shadow-md"
-          >
+          <TabsContent value="revoke" className="bg-background rounded-md">
             <div className="p-6 text-xl font-bold">
               Add Service
               <p className="text-muted-foreground text-sm font-normal">
@@ -1088,7 +1130,7 @@ function AddServiceButton({
                   variant={"outline"}
                   className="hover:bg-accent/60 bg-accent/40"
                   type="submit"
-                  disabled={loading}
+                  disabled={loading || !frag}
                 >
                   {loading ? (
                     <Loader className="animate-spin" />
@@ -1124,6 +1166,7 @@ function ServiceRow({
   setSelectedDid: React.Dispatch<React.SetStateAction<Did>>;
   setNeedLogin: React.Dispatch<React.SetStateAction<number>>;
 }) {
+  const serviceJson = beautifyJson(service.json);
   const [loading, setLoading] = useState<boolean>(false);
 
   const handleDelete = async () => {
@@ -1177,10 +1220,17 @@ function ServiceRow({
             <CodeXml size={16} className="mx-auto hover:cursor-pointer" />
           </DropdownMenuTrigger>
           <DropdownMenuContent
-            className="bg-muted max-w-lg backdrop-blur-xl md:max-w-2xl"
+            className="bg-muted relative max-w-screen-sm backdrop-blur-xl lg:max-w-screen-md xl:max-w-screen-lg 2xl:max-w-screen-xl"
             side={"left"}
           >
-            <JsonCode code={beautifyJsonCode(service.text)} />
+            <Clipboard
+              size={16}
+              className="hover:text-foreground text-muted-foreground absolute right-4 top-4 cursor-pointer"
+              onClick={() => {
+                navigator.clipboard.writeText(serviceJson);
+              }}
+            />
+            <JsonCode code={serviceJson} />
           </DropdownMenuContent>
         </DropdownMenu>
       </td>
@@ -1216,14 +1266,450 @@ function ServiceRow({
   );
 }
 
-function DIDCodeContent({ code }: { code: string }) {
-  if (!code) return null;
+function VcsContent({
+  name,
+  index,
+  selectedDid,
+  setDids,
+  setSelectedDid,
+  setNeedLogin,
+}: {
+  name: string;
+  index: number;
+  selectedDid: Did;
+  setDids: React.Dispatch<React.SetStateAction<Did[]>>;
+  setSelectedDid: React.Dispatch<React.SetStateAction<Did>>;
+  setNeedLogin: React.Dispatch<React.SetStateAction<number>>;
+}) {
+  const vcs = selectedDid?.vc || [];
+  // if (vcs.length === 0) return null;
   return (
-    <>
-      <AccordionContent className="font-mono">
-        <JsonCode code={code} />
-      </AccordionContent>
-    </>
+    <AccordionContent>
+      <ScrollArea className="bg-background/25 rounded-md py-2">
+        <table className="min-w-full table-auto border-collapse">
+          <thead>
+            <tr className="border-border text-muted-foreground border-b">
+              <th className="px-2 pl-4 text-left text-sm font-normal">
+                Context
+              </th>
+              <th className="px-2 text-left text-sm font-normal">Types</th>
+              <th className="px-2 text-left text-sm font-normal">Issuer</th>
+              <th className="w-10 px-2 text-center text-sm font-normal"></th>
+              <th className="w-10 px-2 text-center text-sm font-normal"></th>
+              <th className="w-10 px-2 pr-4 text-center text-sm font-normal">
+                <AddVcButton
+                  name={name}
+                  index={index}
+                  selectedDid={selectedDid}
+                  setDids={setDids}
+                  setSelectedDid={setSelectedDid}
+                  setNeedLogin={setNeedLogin}
+                />
+              </th>
+            </tr>
+          </thead>
+          <tbody>
+            {vcs.map((vc) => {
+              return (
+                <VcRow
+                  key={vc.id}
+                  name={name}
+                  index={index}
+                  selectedDid={selectedDid}
+                  vc={vc}
+                  vcId={vc.id}
+                  setDids={setDids}
+                  setSelectedDid={setSelectedDid}
+                  setNeedLogin={setNeedLogin}
+                />
+              );
+            })}
+          </tbody>
+        </table>
+        <ScrollBar orientation="horizontal" />
+      </ScrollArea>
+    </AccordionContent>
+  );
+}
+
+function AddVcButton({
+  name,
+  index,
+  selectedDid,
+  setDids,
+  setSelectedDid,
+  setNeedLogin,
+}: {
+  name: string;
+  index: number;
+  selectedDid: Did;
+  setDids: React.Dispatch<React.SetStateAction<Did[]>>;
+  setSelectedDid: React.Dispatch<React.SetStateAction<Did>>;
+  setNeedLogin: React.Dispatch<React.SetStateAction<number>>;
+}) {
+  const [loading, setLoading] = useState(false);
+  const [jwt, setJwt] = useState<string>("");
+
+  const handleSubmit = async (e: React.FormEvent<HTMLFormElement>) => {
+    e.preventDefault();
+    try {
+      setLoading(true);
+      const res = await axios.post<PostVcsResponse>(
+        `/api/iota/wallets/${name}/accounts/${index}/dids/${selectedDid.did}/vcs`,
+        { jwt },
+      );
+      if (res.data.error) {
+        alert(res.data.error.message);
+
+        if (res.data.error.code === 401) {
+          setNeedLogin((prev) => prev + 1);
+        }
+        return;
+      }
+      const did = res.data.data.did;
+      setSelectedDid(did);
+      setDids((prev) => prev.map((d) => (d.did === did.did ? did : d)));
+      setJwt("");
+    } catch (error) {
+      console.error(error);
+      alert("Failed to add a new VC");
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  return (
+    <Dialog>
+      <DialogTrigger asChild>
+        <Button
+          variant={"ghost"}
+          size={"icon"}
+          className="hover:bg-background/0 w-6"
+        >
+          {loading ? (
+            <Loader size={20} className="animate-spin" />
+          ) : (
+            <BetweenHorizonalEnd size={20} />
+          )}
+        </Button>
+      </DialogTrigger>
+      <DialogContent className="bg-background max-w-lg border-0 shadow-none">
+        <div className="text-xl font-bold">
+          Add Verifiable Credential
+          <p className="text-muted-foreground text-sm font-normal">
+            Store your VC in wallet
+          </p>
+        </div>
+        <form className="grid gap-4" onSubmit={handleSubmit}>
+          <div className="grid grid-cols-3 items-center gap-4">
+            <Label htmlFor="jwt">JWT</Label>
+            <Textarea
+              id="jwt"
+              placeholder="JWT format of the VC"
+              className="col-span-2 h-48"
+              value={jwt}
+              onChange={(e) => setJwt(e.target.value)}
+            />
+          </div>
+          <div className="grid gap-2 pt-2">
+            <Button
+              variant={"outline"}
+              className="hover:bg-accent/60 bg-accent/40"
+              type="submit"
+              disabled={loading || !jwt}
+            >
+              {loading ? <Loader className="animate-spin" /> : "Store VC"}
+            </Button>
+          </div>
+        </form>
+      </DialogContent>
+    </Dialog>
+  );
+}
+
+function GenVpButton({
+  name,
+  index,
+  selectedDid,
+  vcId,
+  setNeedLogin,
+}: {
+  name: string;
+  index: number;
+  selectedDid: Did;
+  vcId: string;
+  setNeedLogin: React.Dispatch<React.SetStateAction<number>>;
+}) {
+  const [loading, setLoading] = useState(false);
+  const [fragment, setFragment] = useState<string>("");
+  const [periodMinutes, setPeriodMinutes] = useState<number>(10);
+  const [vp, setVp] = useState<string>("");
+
+  const handleSubmit = async (e: React.FormEvent<HTMLFormElement>) => {
+    e.preventDefault();
+    if (!fragment || !periodMinutes) return;
+    try {
+      setLoading(true);
+      const res = await axios.post<PostVpResponse>(
+        `/api/iota/wallets/${name}/accounts/${index}/dids/${selectedDid.did}/vcs/${vcId}/vp`,
+        { periodMinutes, fragment },
+      );
+      if (res.data.error) {
+        alert(res.data.error.message);
+
+        if (res.data.error.code === 401) {
+          setNeedLogin((prev) => prev + 1);
+        }
+        return;
+      }
+      setVp(res.data.data.vp);
+    } catch (error) {
+      console.error(error);
+      alert("Failed to create a new VP");
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  const handleDialog = (o: boolean) => {
+    !o && setVp("");
+    !o && setPeriodMinutes(10);
+    !o && setFragment("");
+  };
+
+  return (
+    <Dialog onOpenChange={handleDialog}>
+      <DialogTrigger asChild>
+        <Button
+          variant={"ghost"}
+          size={"icon"}
+          className="hover:bg-background/0 group w-6"
+        >
+          {loading ? (
+            <Loader size={16} className="animate-spin" />
+          ) : (
+            <Send
+              size={16}
+              className="group-hover:text-foreground text-muted-foreground"
+            />
+          )}
+        </Button>
+      </DialogTrigger>
+      {vp ? (
+        <DialogContent className="bg-background max-w-lg border-0 shadow-none">
+          <div className="text-xl font-bold">
+            Prepare Verifiable Presentation
+            <p className="text-muted-foreground text-sm font-normal">
+              Make a VP from the VC
+            </p>
+          </div>
+          <form className="grid gap-4" onSubmit={handleSubmit}>
+            <Textarea
+              id="vp"
+              placeholder="Verifiable Presentation"
+              className="h-48"
+              value={vp}
+              readOnly
+            />
+            <div className="grid gap-2 pt-2">
+              <Button
+                variant={"outline"}
+                className="hover:bg-accent/60 bg-accent/40"
+                type="submit"
+                disabled={loading}
+              >
+                Create a new VP
+              </Button>
+            </div>
+          </form>
+        </DialogContent>
+      ) : (
+        <DialogContent className="bg-background max-w-lg border-0 shadow-none">
+          <div className="text-xl font-bold">
+            Prepare Verifiable Presentation
+            <p className="text-muted-foreground text-sm font-normal">
+              Make a VP from the VC
+            </p>
+          </div>
+          <form className="grid gap-4" onSubmit={handleSubmit}>
+            <div className="grid grid-cols-3 items-center gap-4">
+              <Label htmlFor="fragment">Method</Label>
+              <Select value={fragment} onValueChange={(e) => setFragment(e)}>
+                <SelectTrigger
+                  id="fragment"
+                  className="col-span-2 bg-transparent"
+                >
+                  <SelectValue placeholder="Select a method to sign the VP" />
+                </SelectTrigger>
+                <SelectContent>
+                  {selectedDid.method
+                    .filter(
+                      (m) =>
+                        m.relationship === "-" ||
+                        m.relationship === "AssertionMethod",
+                    )
+                    .map((s) => (
+                      <SelectItem key={s.fragment} value={s.fragment}>
+                        {s.fragment}
+                      </SelectItem>
+                    ))}
+                </SelectContent>
+              </Select>
+            </div>
+            <div className="grid grid-cols-3 items-center gap-4">
+              <Label htmlFor="period">Validity Period (min)</Label>
+              <Input
+                id="period"
+                type="text"
+                placeholder="Validity Period"
+                className="col-span-2 h-10"
+                value={periodMinutes}
+                onChange={(e) => {
+                  const value = parseInt(e.target.value);
+                  value > 0 && setPeriodMinutes(value);
+                }}
+              />
+            </div>
+            <div className="grid gap-2 pt-2">
+              <Button
+                variant={"outline"}
+                className="hover:bg-accent/60 bg-accent/40"
+                type="submit"
+                disabled={loading || !fragment || !periodMinutes}
+              >
+                {loading ? <Loader className="animate-spin" /> : "Prepare VP"}
+              </Button>
+            </div>
+          </form>
+        </DialogContent>
+      )}
+    </Dialog>
+  );
+}
+
+function VcRow({
+  vc,
+  name,
+  index,
+  selectedDid,
+  vcId,
+  setDids,
+  setSelectedDid,
+  setNeedLogin,
+}: {
+  vc: Did["vc"][number];
+  name: string;
+  index: number;
+  selectedDid: Did;
+  vcId: string;
+  setDids: React.Dispatch<React.SetStateAction<Did[]>>;
+  setSelectedDid: React.Dispatch<React.SetStateAction<Did>>;
+  setNeedLogin: React.Dispatch<React.SetStateAction<number>>;
+}) {
+  const credential = beautifyJson(vc.credential);
+  const [loading, setLoading] = useState<boolean>(false);
+
+  const handleDelete = async () => {
+    try {
+      setLoading(true);
+      const res = await axios.delete<PatchDidResponse>(
+        `/api/iota/wallets/${name}/accounts/${index}/dids/${selectedDid.did}/vcs/${vcId}`,
+      );
+      if (res.data.error) {
+        alert(res.data.error.message);
+
+        if (res.data.error.code === 401) {
+          setNeedLogin((prev) => prev + 1);
+        }
+        return;
+      }
+      const did = res.data.data.did;
+      setSelectedDid(did);
+      setDids((prev) => prev.map((d) => (d.did === did.did ? did : d)));
+    } catch (error) {
+      console.error(error);
+      alert("Failed to delete the VC");
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  return (
+    <tr className="border-border border-b">
+      <td className="p-2 pl-4">
+        <a
+          className="select-all break-all text-sm hover:underline hover:underline-offset-2"
+          href={vc.credential.id}
+          target="_blank"
+          rel="noreferrer"
+        >
+          {vc.credential.id}
+        </a>
+      </td>
+      <td className="p-2">
+        <p className="text-sm">{vc.credential.type.join(", ")}</p>
+      </td>
+      <td className="p-2">
+        <p className="break-all font-mono text-sm">{vc.credential.issuer}</p>
+      </td>
+      <td className="p-2 text-center">
+        <GenVpButton
+          name={name}
+          index={index}
+          selectedDid={selectedDid}
+          vcId={vcId}
+          setNeedLogin={setNeedLogin}
+        />
+      </td>
+      <td className="p-2 text-center">
+        <DropdownMenu>
+          <DropdownMenuTrigger asChild>
+            <CodeXml size={16} className="mx-auto hover:cursor-pointer" />
+          </DropdownMenuTrigger>
+          <DropdownMenuContent
+            className="bg-muted relative max-w-screen-sm backdrop-blur-xl lg:max-w-screen-md xl:max-w-screen-lg 2xl:max-w-screen-xl"
+            side={"left"}
+          >
+            <Clipboard
+              size={16}
+              className="hover:text-foreground text-muted-foreground absolute right-4 top-4 cursor-pointer"
+              onClick={() => {
+                navigator.clipboard.writeText(credential);
+              }}
+            />
+            <JsonCode code={credential} />
+          </DropdownMenuContent>
+        </DropdownMenu>
+      </td>
+      <td className="hover:text-foreground text-muted-foreground w-10 p-2 pr-4 text-center hover:cursor-pointer">
+        <Popover>
+          <PopoverTrigger asChild>
+            {loading ? (
+              <LoaderCircle className="mx-auto h-4 w-4 animate-spin ease-in-out" />
+            ) : (
+              <FilePenLine className="mx-auto h-4 w-4" />
+            )}
+          </PopoverTrigger>
+          <PopoverContent className="max-w-lg md:max-w-2xl" side="left">
+            <div className="grid gap-4">
+              <div className="space-y-2">
+                <h4 className="font-medium leading-none">Delete VC</h4>
+              </div>
+              <div className="grid grid-cols-1 items-center">
+                <Button
+                  variant={"outline"}
+                  className="hover:bg-destructive/60 bg-destructive/40"
+                  onClick={handleDelete}
+                  disabled={loading}
+                >
+                  {loading ? <Loader className="animate-spin" /> : "Delete"}
+                </Button>
+              </div>
+            </div>
+          </PopoverContent>
+        </Popover>
+      </td>
+    </tr>
   );
 }
 

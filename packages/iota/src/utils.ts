@@ -204,7 +204,7 @@ export type GetMethodsResult = {
   fragment: string;
   controller: string;
   relationship: Relationship;
-  text: string;
+  json: Record<string, any>;
 }[];
 
 /**
@@ -239,7 +239,7 @@ function pushMethod(
       fragment: method.id().fragment()!,
       controller: method.controller().toString(),
       relationship: scope,
-      text: method.toString(),
+      json: method.toJSON(),
     });
   });
 }

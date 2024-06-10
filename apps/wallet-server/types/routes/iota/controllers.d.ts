@@ -1,7 +1,7 @@
 import { Request } from "express";
 import { DIDWallet } from "../../iota";
 import { TypedResponse } from "../types";
-import { DeleteDidResponse, DeleteMethodResponse, DeleteServiceResponse, GetAccountsResponse, GetBalanceResponse, GetDidsResponse, GetFaucetResponse, GetWalletsResponse, PatchDidResponse, PatchMethodResponse, PostAccountsResponse, PostDidsResponse, PostMethodsResponse, PostPasswordResponse, PostServicesResponse, PostWalletsResponse } from "./types";
+import { DeleteDidResponse, DeleteMethodResponse, DeleteServiceResponse, DeleteVcResponse, GetAccountsResponse, GetBalanceResponse, GetDidsResponse, GetFaucetResponse, GetWalletsResponse, PatchDidResponse, PatchMethodResponse, PostAccountsResponse, PostDidsResponse, PostMethodsResponse, PostPasswordResponse, PostServicesResponse, PostVcsResponse, PostVpResponse, PostWalletsResponse } from "./types";
 export declare const getWallets: (req: Request, res: TypedResponse<GetWalletsResponse>) => Promise<void>;
 export declare const postWallets: (req: Request<never, never, {
     name: string;
@@ -93,4 +93,29 @@ export declare const deleteService: (req: Request<{
     frag: string;
     wallet: DIDWallet;
 }>, res: TypedResponse<DeleteServiceResponse>) => Promise<void>;
+export declare const postVcs: (req: Request<{
+    name: string;
+    index: number;
+    id: string;
+    wallet: DIDWallet;
+}, never, {
+    jwt: string;
+}>, res: TypedResponse<PostVcsResponse>) => Promise<TypedResponse<PostVcsResponse> | undefined>;
+export declare const deleteVcs: (req: Request<{
+    name: string;
+    index: number;
+    id: string;
+    vcId: string;
+    wallet: DIDWallet;
+}>, res: TypedResponse<DeleteVcResponse>) => Promise<void>;
+export declare const postVp: (req: Request<{
+    name: string;
+    index: number;
+    id: string;
+    vcId: string;
+    wallet: DIDWallet;
+}, never, {
+    fragment: string;
+    periodMinutes: number;
+}>, res: TypedResponse<PostVpResponse>) => Promise<void>;
 //# sourceMappingURL=controllers.d.ts.map

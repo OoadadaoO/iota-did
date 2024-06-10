@@ -95,7 +95,7 @@ export async function validateVP(
       jwtCredentials[i],
       resolvedIssuers[i],
       credentialValidationOptions,
-      FailFast.FirstError,
+      FailFast.AllErrors,
     );
     decodeCredentials.push(res.credential());
   }

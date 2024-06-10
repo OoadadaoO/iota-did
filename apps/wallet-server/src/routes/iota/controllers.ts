@@ -1,17 +1,23 @@
 import { Request } from "express";
+import { decodeJwt, JWTPayload } from "jose";
 
 import { getAccountsData, getWalletsData } from "@did/iota";
+import { Duration, Jwt, Timestamp } from "@iota/identity-wasm/node";
 
+import { VcDb } from "../../db";
 import { env } from "../../env";
 import { DIDWallet } from "../../iota";
 import { b64uToUtf8 } from "../../utils/base64url";
 import { didResponse } from "../../utils/didResponse";
+import { Id } from "../../utils/id";
 import { TypedResponse } from "../types";
 import {
   Account,
+  Credential,
   DeleteDidResponse,
   DeleteMethodResponse,
   DeleteServiceResponse,
+  DeleteVcResponse,
   GetAccountsResponse,
   GetBalanceResponse,
   GetDidsResponse,
@@ -24,6 +30,8 @@ import {
   PostMethodsResponse,
   PostPasswordResponse,
   PostServicesResponse,
+  PostVcsResponse,
+  PostVpResponse,
   PostWalletsResponse,
 } from "./types";
 
@@ -258,9 +266,13 @@ export const getDIDs = async (
   res: TypedResponse<GetDidsResponse>,
 ) => {
   try {
-    const wallet = req.params.wallet;
-    const address = await wallet.getDIDAddress(req.params.index, 0);
-    const dids = (await address.getDids()).map((doc) => didResponse(doc));
+    const { name, index, wallet } = req.params;
+    const address = await wallet.getDIDAddress(index, 0);
+    const dids = await Promise.all(
+      (await address.getDids()).map(
+        async (doc) => await didResponse(name, doc),
+      ),
+    );
     res.status(200).json({ data: { dids } });
   } catch (error) {
     console.error(error);
@@ -275,10 +287,10 @@ export const postDIDs = async (
   res: TypedResponse<PostDidsResponse>,
 ) => {
   try {
-    const wallet = req.params.wallet;
-    const address = await wallet.getDIDAddress(req.params.index, 0);
+    const { name, index, wallet } = req.params;
+    const address = await wallet.getDIDAddress(index, 0);
     const doc = await address.createDid();
-    const did = didResponse(doc);
+    const did = await didResponse(name, doc);
     res.status(200).json({ data: { did } });
   } catch (error) {
     console.error(error);
@@ -299,12 +311,12 @@ export const patchDid = async (
   res: TypedResponse<PatchDidResponse>,
 ) => {
   try {
-    const wallet = req.params.wallet;
-    const address = await wallet.getDIDAddress(req.params.index, 0);
+    const { name, index, id, wallet } = req.params;
+    const address = await wallet.getDIDAddress(index, 0);
     const doc = req.body.deactivate
-      ? await address.deactivateDid(req.params.id)
-      : await address.reactivateDid(req.params.id);
-    const did = didResponse(doc);
+      ? await address.deactivateDid(id)
+      : await address.reactivateDid(id);
+    const did = await didResponse(name, doc);
     res.status(200).json({ data: { did } });
   } catch (error) {
     console.error(error);
@@ -319,9 +331,9 @@ export const deleteDid = async (
   res: TypedResponse<DeleteDidResponse>,
 ) => {
   try {
-    const wallet = req.params.wallet;
-    const address = await wallet.getDIDAddress(req.params.index, 0);
-    await address.deleteDid(req.params.id);
+    const { index, id, wallet } = req.params;
+    const address = await wallet.getDIDAddress(index, 0);
+    await address.deleteDid(id);
     res.status(200).json({ data: {} });
   } catch (error) {
     console.error(error);
@@ -336,10 +348,10 @@ export const postMethods = async (
   res: TypedResponse<PostMethodsResponse>,
 ) => {
   try {
-    const wallet = req.params.wallet;
-    const address = await wallet.getDIDAddress(req.params.index, 0);
-    const doc = await address.insertMethod(req.params.id);
-    const did = didResponse(doc);
+    const { name, index, id, wallet } = req.params;
+    const address = await wallet.getDIDAddress(index, 0);
+    const doc = await address.insertMethod(id);
+    const did = await didResponse(name, doc);
     res.status(200).json({ data: { did } });
   } catch (error) {
     console.error(error);
@@ -360,10 +372,10 @@ export const deleteMethod = async (
   res: TypedResponse<DeleteMethodResponse>,
 ) => {
   try {
-    const wallet = req.params.wallet;
-    const address = await wallet.getDIDAddress(req.params.index, 0);
-    const doc = await address.removeMethod(req.params.id, req.params.frag);
-    const did = didResponse(doc);
+    const { name, index, id, frag, wallet } = req.params;
+    const address = await wallet.getDIDAddress(index, 0);
+    const doc = await address.removeMethod(id, frag);
+    const did = await didResponse(name, doc);
     res.status(200).json({ data: { did } });
   } catch (error) {
     console.error(error);
@@ -388,21 +400,13 @@ export const patchMethod = async (
   res: TypedResponse<PatchMethodResponse>,
 ) => {
   try {
-    const wallet = req.params.wallet;
-    const address = await wallet.getDIDAddress(req.params.index, 0);
-    let doc = await address.removeRelationship(
-      req.params.id,
-      req.params.frag,
-      [0, 1, 2, 3, 4],
-    );
+    const { name, index, id, frag, wallet } = req.params;
+    const address = await wallet.getDIDAddress(index, 0);
+    let doc = await address.removeRelationship(id, frag, [0, 1, 2, 3, 4]);
     if (req.body.scope >= 0 && req.body.scope <= 4) {
-      doc = await address.insertRelationship(
-        req.params.id,
-        req.params.frag,
-        req.body.scope,
-      );
+      doc = await address.insertRelationship(id, frag, req.body.scope);
     }
-    const did = didResponse(doc);
+    const did = await didResponse(name, doc);
     res.status(200).json({ data: { did } });
   } catch (error) {
     console.error(error);
@@ -425,16 +429,16 @@ export const postServices = async (
   res: TypedResponse<PostServicesResponse>,
 ) => {
   try {
-    const wallet = req.params.wallet;
-    const address = await wallet.getDIDAddress(req.params.index, 0);
+    const { name, index, id, wallet } = req.params;
+    const address = await wallet.getDIDAddress(index, 0);
     const doc =
       req.body.type === "RevocationBitmap2022"
-        ? await address.insertRevokeService(req.params.id, req.body.frag)
-        : await address.insertService(req.params.id, req.body.frag, {
+        ? await address.insertRevokeService(id, req.body.frag)
+        : await address.insertService(id, req.body.frag, {
             type: req.body.type,
             serviceEndpoint: req.body.serviceEndpoint,
           });
-    const did = didResponse(doc);
+    const did = await didResponse(name, doc);
     res.status(200).json({ data: { did } });
   } catch (error) {
     console.error(error);
@@ -455,11 +459,153 @@ export const deleteService = async (
   res: TypedResponse<DeleteServiceResponse>,
 ) => {
   try {
-    const wallet = req.params.wallet;
-    const address = await wallet.getDIDAddress(req.params.index, 0);
-    const doc = await address.removeService(req.params.id, req.params.frag);
-    const did = didResponse(doc);
+    const { name, index, id, frag, wallet } = req.params;
+    const address = await wallet.getDIDAddress(index, 0);
+    const doc = await address.removeService(id, frag);
+    const did = await didResponse(name, doc);
     res.status(200).json({ data: { did } });
+  } catch (error) {
+    console.error(error);
+    res
+      .status(200)
+      .json({ error: { code: 500, message: "Internal server error" } });
+  }
+};
+
+export const postVcs = async (
+  req: Request<
+    { name: string; index: number; id: string; wallet: DIDWallet },
+    never,
+    {
+      jwt: string;
+    }
+  >,
+  res: TypedResponse<PostVcsResponse>,
+) => {
+  try {
+    const { name, index, id, wallet } = req.params;
+    let rawCredential: JWTPayload;
+    try {
+      rawCredential = decodeJwt(req.body.jwt);
+    } catch (error) {
+      return res
+        .status(200)
+        .json({ error: { code: 400, message: "Invalid JWT" } });
+    }
+    if (id != rawCredential.sub) {
+      return res.status(200).json({
+        error: { code: 400, message: "The VC is not for current DID" },
+      });
+    }
+    const credential: Credential = {
+      "@context": (rawCredential.vc as any)["@context"],
+      id: rawCredential.jti!,
+      type: (rawCredential.vc as any).type,
+      credentialSubject: {
+        id: rawCredential.sub!,
+        ...(rawCredential.vc as any).credentialSubject,
+      },
+      issuer: rawCredential.iss!,
+      issuanceDate:
+        new Date((rawCredential.iat || rawCredential.nbf)! * 1000)
+          .toISOString()
+          .split(".")[0] + "Z",
+      expirationDate: rawCredential.exp
+        ? new Date(rawCredential.exp * 1000).toISOString().split(".")[0] + "Z"
+        : undefined,
+      credentialStatus: (rawCredential.vc as any).credentialStatus,
+    };
+    // store vc
+    const db = await VcDb.getInstance(name);
+    await db.update((data) => {
+      const newId = Id();
+      data[newId] = {
+        id: newId,
+        did: id,
+        jwt: req.body.jwt,
+        credential,
+      };
+    });
+    // create response
+    const address = await wallet.getDIDAddress(index, 0);
+    const doc = await address.resolveDid(id);
+    const did = await didResponse(name, doc);
+    res.status(200).json({ data: { did } });
+  } catch (error) {
+    console.error(error);
+    res
+      .status(200)
+      .json({ error: { code: 500, message: "Internal server error" } });
+  }
+};
+
+export const deleteVcs = async (
+  req: Request<{
+    name: string;
+    index: number;
+    id: string;
+    vcId: string;
+    wallet: DIDWallet;
+  }>,
+  res: TypedResponse<DeleteVcResponse>,
+) => {
+  try {
+    const { name, index, id, vcId, wallet } = req.params;
+    // delete vc
+    const db = await VcDb.getInstance(name);
+    await db.update((data) => {
+      delete data[vcId];
+    });
+    // create response
+    const address = await wallet.getDIDAddress(index, 0);
+    const doc = await address.resolveDid(id);
+    const did = await didResponse(name, doc);
+    res.status(200).json({ data: { did } });
+  } catch (error) {
+    console.error(error);
+    res
+      .status(200)
+      .json({ error: { code: 500, message: "Internal server error" } });
+  }
+};
+
+export const postVp = async (
+  req: Request<
+    {
+      name: string;
+      index: number;
+      id: string;
+      vcId: string;
+      wallet: DIDWallet;
+    },
+    never,
+    {
+      fragment: string;
+      periodMinutes: number;
+    }
+  >,
+  res: TypedResponse<PostVpResponse>,
+) => {
+  try {
+    const { name, index, id, vcId, wallet } = req.params;
+    const db = await VcDb.getInstance(name);
+    const vc = db.data[vcId];
+    const jwt = new Jwt(vc.jwt);
+    const expirationDate = Timestamp.nowUTC().checkedAdd(
+      Duration.minutes(req.body.periodMinutes),
+    );
+    const address = await wallet.getDIDAddress(index, 0);
+    const vp = await address.createVP(
+      id,
+      req.body.fragment,
+      {
+        holder: id,
+        verifiableCredential: [jwt],
+      },
+      {},
+      { expirationDate },
+    );
+    res.status(200).json({ data: { vp: vp.toString() } });
   } catch (error) {
     console.error(error);
     res

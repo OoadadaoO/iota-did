@@ -22,3 +22,5 @@ export * from "./iota/wallets/[name]/accounts/[index]/dids/[id]/methods/type";
 export * from "./iota/wallets/[name]/accounts/[index]/dids/[id]/methods/[frag]/type";
 export * from "./iota/wallets/[name]/accounts/[index]/dids/[id]/services/type";
 export * from "./iota/wallets/[name]/accounts/[index]/dids/[id]/services/[frag]/type";
+export * from "./iota/wallets/[name]/accounts/[index]/dids/[id]/vcs/type";
+export * from "./iota/wallets/[name]/accounts/[index]/dids/[id]/vcs/[vcId]/type";

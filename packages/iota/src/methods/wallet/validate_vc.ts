@@ -34,7 +34,7 @@ export async function validateVC(
     credentialJwt,
     resolvedHolder,
     new JwtCredentialValidationOptions(jwtCredentialValidationOptions),
-    FailFast.FirstError,
+    FailFast.AllErrors,
   );
 
   return { credential: res.credential() };

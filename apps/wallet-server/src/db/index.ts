@@ -1,6 +1,8 @@
 import { type AdapterOptions, LowDB } from "@did/lowdb";
 
-import { privateEnv } from "../env/private";
+import { env } from "../env";
+import { Credential } from "../routes/iota";
+import { b64uToUtf8 } from "../utils/base64url";
 import { ensureDirExist } from "../utils/ensureDirExist";
 
 export type VcSchema = {
@@ -8,6 +10,7 @@ export type VcSchema = {
     id: string;
     did: string;
     jwt: string;
+    credential: Credential;
   };
 };
 
@@ -19,14 +22,16 @@ export class VcDb extends LowDB<VcSchema> {
     super(adapterOptions, {});
   }
 
-  public static async getInstance(name: string) {
+  public static async getInstance(b64uName: string) {
+    const name = b64uToUtf8(b64uName);
     if (!VcDb.#instances.has(name)) {
-      const filepath = `${privateEnv.WALLET_BASEPATH}${name}/_vc.json`;
+      const filepath = `${env.WALLET_BASEPATH}${name}/_vc.json`;
       ensureDirExist(filepath);
       const newWallet = new VcDb({
         filename: filepath,
-        password: privateEnv.DB_PASSWORD,
+        password: env.DB_PASSWORD,
       });
+      await newWallet.read();
       VcDb.#instances.set(name, newWallet);
       console.log(`Constructed a new VcDb named ${name}.`);
     }

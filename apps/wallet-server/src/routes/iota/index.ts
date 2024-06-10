@@ -4,6 +4,7 @@ import {
   deleteDid,
   deleteMethod,
   deleteService,
+  deleteVcs,
   getAccounts,
   getBalance,
   getDIDs,
@@ -16,6 +17,8 @@ import {
   postMethods,
   postPassword,
   postServices,
+  postVcs,
+  postVp,
   postWallets,
 } from "./controllers";
 import { passwordAuth } from "./middlewares";
@@ -69,6 +72,21 @@ router.delete(
   "/wallets/:name/accounts/:index/dids/:id/services/:frag",
   passwordAuth,
   deleteService,
+);
+router.post(
+  "/wallets/:name/accounts/:index/dids/:id/vcs",
+  passwordAuth,
+  postVcs,
+);
+router.delete(
+  "/wallets/:name/accounts/:index/dids/:id/vcs/:vcId",
+  passwordAuth,
+  deleteVcs,
+);
+router.post(
+  "/wallets/:name/accounts/:index/dids/:id/vcs/:vcId/vp",
+  passwordAuth,
+  postVp,
 );
 
 export * from "./types";
