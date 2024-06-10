@@ -20,11 +20,7 @@ export default async function Layout({
     <div className="flex-1 space-y-6 px-4 py-6 md:px-6">
       <div className="flex items-center justify-between space-y-2">
         <h2 className="text-3xl font-bold tracking-tight">
-          {permission.admin
-            ? "Settings"
-            : permission.member
-              ? "Dashboard"
-              : "Dashboard"}
+          {permission.admin ? "Settings" : "Dashboard"}
         </h2>
       </div>
       {permission.admin ? admin : permission.member ? member : user}

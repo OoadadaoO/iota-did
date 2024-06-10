@@ -5,54 +5,60 @@ import React, { useState } from "react";
 import axios from "axios";
 import { Building2, FileBadge, User } from "lucide-react";
 
-import type { PostVcResponse } from "@/app/api/iota/vc/type";
+import type {
+  PostValidateVpResponse,
+  PostValidateVpResponseOk,
+} from "@/app/api/type";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
-import { Input } from "@/components/ui/input";
-import type { MemberCredentialType } from "@/lib/db/type";
+import { Textarea } from "@/components/ui/textarea";
 
 type Props = {
-  vc?: MemberCredentialType;
+  vc?: PostValidateVpResponseOk["data"]["vc"];
 };
 
-export function Wallet({ vc: dbVc }: Props) {
-  const [vc, setVc] = useState<MemberCredentialType | undefined>(dbVc);
-  const [did, setDid] = useState<string>("");
+export function Vc({ vc: dbVc }: Props) {
+  const [vc, setVc] = useState<
+    PostValidateVpResponseOk["data"]["vc"] | undefined
+  >(dbVc);
+  const [jwt, setJwt] = useState<string>("");
 
-  const handleCreateVc = async (e: React.FormEvent<HTMLFormElement>) => {
+  const handleSubmitVp = async (e: React.FormEvent<HTMLFormElement>) => {
     e.preventDefault();
     try {
-      const res = await axios.post<PostVcResponse>("/api/iota/vc", { did });
+      const res = await axios.post<PostValidateVpResponse>("/api/iota/vp", {
+        jwt,
+      });
       if (res.data.error) {
-        console.error("POST /api/iota/vc", res.data.error);
+        console.error("POST /api/iota/vp", res.data.error);
+        alert(res.data.error.message);
         return;
       }
       setVc(res.data.data.vc);
     } catch (error) {
-      console.error("POST /api/iota/vc", error);
+      console.error("POST /api/iota/vp", error);
     }
   };
 
   if (!vc)
     return (
       <form
-        className="flex w-full items-stretch justify-between gap-4"
-        onSubmit={handleCreateVc}
+        className="flex w-full flex-col items-stretch justify-between gap-4"
+        onSubmit={handleSubmitVp}
       >
-        <Input
-          type="text"
-          className="flex-1 font-mono placeholder:font-sans"
-          placeholder="Enter your DID here to get started"
-          value={did}
-          onChange={(e) => setDid(e.target.value.trim())}
+        <Textarea
+          className="h-60 font-mono placeholder:font-sans"
+          placeholder="Enter your VP in JWT format here to get started"
+          value={jwt}
+          onChange={(e) => setJwt(e.target.value.trim())}
         />
-        <Button className="" type="submit">
-          Connect
+        <Button className="ml-auto" type="submit">
+          Present
         </Button>
       </form>
     );
   return (
-    <div className="relative grid grid-cols-1 gap-4 md:grid-cols-3">
+    <div className="relative grid grid-cols-1 gap-4 lg:grid-cols-3">
       <div className="flex flex-col items-stretch justify-start gap-4">
         <Card className="">
           <CardHeader className="flex flex-row items-center justify-between p-6">
@@ -65,7 +71,7 @@ export function Wallet({ vc: dbVc }: Props) {
             <section>
               <p className="mb-0.5 text-sm">DID</p>
               <div className="text-muted-foreground break-all font-mono leading-tight tracking-tight">
-                {vc.issuerdid}
+                {vc.did}
               </div>
             </section>
           </CardContent>
@@ -81,7 +87,7 @@ export function Wallet({ vc: dbVc }: Props) {
             <section>
               <p className="mb-0.5 text-sm">DID</p>
               <div className="text-muted-foreground break-all font-mono leading-tight tracking-tight">
-                {vc.issuerdid}
+                {vc.issuerDid}
               </div>
             </section>
             <section>
@@ -107,16 +113,16 @@ export function Wallet({ vc: dbVc }: Props) {
           <FileBadge className="text-muted-foreground h-4 w-4" />
         </CardHeader>
         <CardContent className="flex flex-col items-stretch gap-4 p-6 pt-0">
-          <section className="overflow-x-auto">
+          <section className="overflow-y-auto">
             <p className="mb-0.5 text-sm">JWT</p>
-            <div className="text-muted-foreground break-all font-mono leading-tight tracking-tight">
+            <div className="text-muted-foreground select-all break-all font-mono leading-tight tracking-tight">
               {vc.jwt}
             </div>
           </section>
           <section className="overflow-x-auto">
             <p className="mb-0.5 text-sm">Credential</p>
             <pre className="text-muted-foreground break-all font-mono leading-tight tracking-tight">
-              {JSON.stringify(JSON.parse(vc.content).credential, null, 2)}
+              {JSON.stringify(JSON.parse(vc.content), null, 2)}
             </pre>
           </section>
         </CardContent>

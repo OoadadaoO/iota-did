@@ -10,7 +10,7 @@ const authMatch = /^\/auth\/.*$/;
 const adminForbid: RegExp[] = [];
 const memberForbid: RegExp[] = [/^\/admin\/.*$/];
 const partnerForbid: RegExp[] = [/^\/(admin|private)\/.*$/];
-const normalForbid: RegExp[] = [/^\/(admin|private|shared|settings)\/.*$/];
+const normalForbid: RegExp[] = [/^\/(admin|private|shared)\/.*$/];
 
 export async function middleware(request: NextRequest) {
   const res = NextResponse.next();
@@ -45,10 +45,9 @@ export async function middleware(request: NextRequest) {
 
   // route protection by permission
   const auth = decodePermission(permission);
-  const reherf =
-    request.headers.get("referer") === request.url
-      ? "/"
-      : request.headers.get("referer") || "/";
+  const reherf = request.headers.get("referer")?.startsWith(request.url)
+    ? "/"
+    : request.headers.get("referer") || "/";
   if (auth.admin) {
     if (adminForbid.some((r) => r.test(pathname)))
       return NextResponse.redirect(new URL(reherf, request.url));
@@ -69,7 +68,7 @@ export async function middleware(request: NextRequest) {
 }
 
 export const config = {
-  matcher: ["/((?!api|_next/static|_next/image|favicon.ico|.*\\.png$).*)"],
+  matcher: ["/((?!api|_next/static|_next/image|.*[/]favicon.ico|.*\\.png$).*)"],
   missing: [
     { type: "header", key: "next-router-prefetch" },
     { type: "header", key: "purpose", value: "prefetch" },

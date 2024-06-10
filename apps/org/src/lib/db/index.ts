@@ -46,9 +46,13 @@ export class DataDb extends LowDB<DataSchema> {
 }
 
 export type ConfigSchema = {
-  issueDid?: string;
-  issueFragment?: string;
-  revokeFragment?: string;
+  issuerDid: string;
+  issuerFragment: string;
+  revokeFragment: string;
+  allowedIssuers: {
+    name: string;
+    did: string;
+  }[];
 };
 
 export type ConfigDbptions = AdapterOptions;
@@ -56,7 +60,12 @@ export type ConfigDbptions = AdapterOptions;
 export class ConfigDb extends LowDB<ConfigSchema> {
   static #instance: ConfigDb;
   private constructor(adapterOptions: ConfigDbptions) {
-    super(adapterOptions, {});
+    super(adapterOptions, {
+      issuerDid: "",
+      issuerFragment: "",
+      revokeFragment: "",
+      allowedIssuers: [],
+    });
   }
 
   public static async getInstance() {

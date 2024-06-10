@@ -8,7 +8,6 @@ export function sessionFromParse(data: Session): Session | undefined {
       username: data.user.username,
       email: data.user.email,
       permission: data.user.permission,
-      did: data.user.did,
     },
     expires: new Date(data.expires),
   };

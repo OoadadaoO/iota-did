@@ -178,6 +178,15 @@ export function Dashboard({
           <div className="flex h-[68px] items-center justify-between gap-2 p-6">
             <div className="text-sm font-bold">Decentralized IDentity</div>
             <div>
+              <Button
+                variant={"ghost"}
+                size={"icon"}
+                className="hover:bg-background/20 group"
+                disabled={loading}
+                onClick={() => navigator.clipboard.writeText(selectedDid.did)}
+              >
+                <Clipboard size={20} />
+              </Button>
               <PatchDIDButton
                 name={name}
                 index={selectedAcc.index}

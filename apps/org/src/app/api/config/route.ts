@@ -42,41 +42,44 @@ export async function PUT(
         { status: 200 },
       );
     }
-    const data = zbody.data;
+    const newData = zbody.data;
 
+    const db = await ConfigDb.getInstance();
     // get dids
-    const res = await axios.get<GetDIDsResponse>(
-      `${privateEnv.IOTA_EXPRESS_URL}/api/iota/dids`,
-    );
-    if (res.data.error) {
-      return NextResponse.json(res.data, { status: 200 });
-    }
-    const dids = res.data.data.dids;
-    const did = dids.find((d) => d.did === data.issueDid);
     if (
-      !did ||
-      !did.method.assertion.includes(data.issueFragment) ||
-      !did.service.some((s) => s.fragment === data.revokeFragment)
+      newData.issuerDid !== db.data.issuerDid ||
+      newData.issuerFragment !== db.data.issuerFragment ||
+      newData.revokeFragment !== db.data.revokeFragment
     ) {
-      return NextResponse.json(
-        { error: { code: 400, message: "Invalid Body" } },
-        { status: 200 },
+      const res = await axios.get<GetDIDsResponse>(
+        `${privateEnv.IOTA_EXPRESS_URL}/api/iota/dids`,
       );
+      if (res.data.error) {
+        return NextResponse.json(res.data, { status: 200 });
+      }
+      const dids = res.data.data.dids;
+      const did = dids.find((d) => d.did === newData.issuerDid);
+      if (
+        !did ||
+        !did.method.assertion.includes(newData.issuerFragment) ||
+        !did.service.some((s) => s.fragment === newData.revokeFragment)
+      ) {
+        return NextResponse.json(
+          { error: { code: 400, message: "Invalid Body" } },
+          { status: 200 },
+        );
+      }
     }
 
     // put config
-    const db = await ConfigDb.getInstance();
-    db.data.issueDid = data.issueDid;
-    db.data.issueFragment = data.issueFragment;
-    db.data.revokeFragment = data.revokeFragment;
-    await db.write();
-    const newConfig = {
-      issueDid: db.data.issueDid || "",
-      issueFragment: db.data.issueFragment || "",
-      revokeFragment: db.data.revokeFragment || "",
-    };
+    await db.update((data) => {
+      data.issuerDid = newData.issuerDid;
+      data.issuerFragment = newData.issuerFragment;
+      data.revokeFragment = newData.revokeFragment;
+      data.allowedIssuers = newData.allowedIssuers;
+    });
 
-    return NextResponse.json({ data: { config: newConfig } }, { status: 200 });
+    return NextResponse.json({ data: { config: db.data } }, { status: 200 });
   } catch (error) {
     return NextResponse.json(
       { error: { code: 500, message: "Internal server error" } },

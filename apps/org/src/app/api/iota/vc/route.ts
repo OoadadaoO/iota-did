@@ -11,10 +11,49 @@ import { publicEnv } from "@/lib/env/public";
 import { Id } from "@/lib/utils/id";
 import { decodePermission } from "@/lib/utils/parsePermission";
 
-import type { EPostVcResponse, PostVcResponse } from "./type";
+import type { GetVcResponse, PostVcResponse } from "./type";
 import { postVcSchema } from "./validator";
 
 export const dynamic = "force-dynamic";
+export async function GET(): Promise<NextResponse<GetVcResponse>> {
+  try {
+    // session does not exist
+    const session = await auth();
+    if (!session || !session.user) {
+      return NextResponse.json(
+        { error: { code: 401, message: "Please login first." } },
+        { status: 200 },
+      );
+    }
+    // check authorization
+    const permission = decodePermission(session.user.permission);
+    // check vc in db
+    const db = await DataDb.getInstance();
+    const collection =
+      permission.admin || permission.member
+        ? db.data.memberCredentials
+        : db.data.partnerCredentials;
+    const vc = Object.values(collection).find(
+      (vc) => vc.userId === session.user.id,
+    );
+    if (vc) {
+      return NextResponse.json({ data: { vc } }, { status: 200 });
+    }
+    return NextResponse.json(
+      {
+        error: { code: 404, message: "VC not found" },
+      },
+      { status: 200 },
+    );
+  } catch (error) {
+    console.error("GET /api/iota/vc", error);
+    return NextResponse.json(
+      { error: { code: 500, message: "Internal server error" } },
+      { status: 200 },
+    );
+  }
+}
+
 export async function POST(
   req: NextRequest,
 ): Promise<NextResponse<PostVcResponse>> {
@@ -57,7 +96,7 @@ export async function POST(
 
     // get vc
     const config = (await ConfigDb.getInstance()).data;
-    if (!config.issueDid || !config.issueFragment || !config.revokeFragment) {
+    if (!config.issuerDid || !config.issuerFragment || !config.revokeFragment) {
       return NextResponse.json(
         { error: { code: 500, message: "Invalid config" } },
         { status: 200 },
@@ -65,11 +104,11 @@ export async function POST(
     }
     const index = crypto.randomBytes(4).readUInt32BE(0);
     const data = {
-      issuer: { did: config.issueDid, frag: config.issueFragment },
+      issuer: { did: config.issuerDid, frag: config.issuerFragment },
       credData: {
         id: `${publicEnv.NEXT_PUBLIC_BASE_URL}/credentials/${session.user.id}`,
         type: "GroupMemberCredential",
-        issuer: config.issueDid,
+        issuer: config.issuerDid,
         credentialSubject: {
           id: holderDid,
           name: session.user.username,
@@ -78,7 +117,7 @@ export async function POST(
       },
       revoke: { frag: config.revokeFragment, index: index.toString() },
     };
-    const res = await axios.post<EPostVcResponse>(
+    const res = await axios.post<PostVcResponse>(
       `${privateEnv.IOTA_EXPRESS_URL}/api/iota/vc`,
       data,
     );
@@ -91,19 +130,13 @@ export async function POST(
     const newVc: MemberCredentialType = {
       id: Id(),
       userId: session.user.id,
-      did: holderDid,
-      jwt: vcData.jwt,
-      content: vcData.content,
-      issuerdid: data.issuer.did,
-      issuerFragment: data.issuer.frag,
-      revokeFragment: data.revoke.frag,
-      revokeIndex: index,
+      ...vcData,
     };
     db.update((data) => {
       data.memberCredentials[newVc.id] = newVc;
     });
 
-    return NextResponse.json({ data: { vc: newVc } }, { status: 200 });
+    return NextResponse.json(res.data, { status: 200 });
   } catch (error) {
     console.error("GET /api/iota/dids", error);
     return NextResponse.json(

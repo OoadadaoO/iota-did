@@ -3,9 +3,16 @@
 import React, { useState } from "react";
 
 import axios from "axios";
-import { BriefcaseBusiness, Handshake, Users2 } from "lucide-react";
+import {
+  ArrowDownWideNarrow,
+  BriefcaseBusiness,
+  Handshake,
+  Loader,
+  Users2,
+} from "lucide-react";
 
 import type { PatchUserResponse } from "@/app/api/users/[userId]/type";
+import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Checkbox } from "@/components/ui/checkbox";
 import { Input } from "@/components/ui/input";
@@ -27,6 +34,7 @@ type UserState = (Omit<UserType, "hashedPassword" | "permission"> & {
 })[];
 
 export function Users({ users: dbUsers }: Props) {
+  const [loading, setLoading] = useState<boolean>(false);
   const [filter, setFilter] = useState<string>("");
   const [users, setUsers] = useState<UserState>(
     sortUsers(
@@ -55,6 +63,7 @@ export function Users({ users: dbUsers }: Props) {
   const handlePermissionChange =
     (userId: string, permissionType: PermissionType) =>
     async (e: CheckedState) => {
+      setLoading(true);
       const user = users.find((u) => u.id === userId);
       if (!user) return;
       const permission = {
@@ -81,6 +90,8 @@ export function Users({ users: dbUsers }: Props) {
         setUsers((prev) => prev.map((u) => (u.id === userId ? resUser : u)));
       } catch (error) {
         console.error(error);
+      } finally {
+        setLoading(false);
       }
     };
   return (
@@ -121,16 +132,29 @@ export function Users({ users: dbUsers }: Props) {
       </Card>
       <Card className="md:col-span-2 lg:col-span-3">
         <CardHeader className="flex flex-col items-start justify-between gap-y-6 space-y-0 pb-6 md:flex-row md:items-center md:gap-y-0">
-          <CardTitle className="text-2xl font-semibold">
+          <CardTitle className="flex items-center gap-2 text-2xl font-semibold tracking-tighter">
             Manage Permissions
+            {loading && (
+              <Loader className="text-primary h-6 w-6 animate-spin ease-in-out" />
+            )}
           </CardTitle>
-          <Input
-            type="text"
-            placeholder="Search"
-            className="w-full md:w-96"
-            value={filter}
-            onChange={(e) => setFilter(e.target.value)}
-          />
+          <div className="flex items-center gap-2">
+            <Button
+              className="text-muted-foreground hover:text-foreground text-sm"
+              size={"icon"}
+              variant={"ghost"}
+              onClick={() => setUsers((prev) => [...sortUsers(prev)])}
+            >
+              <ArrowDownWideNarrow />
+            </Button>
+            <Input
+              type="text"
+              placeholder="Search"
+              className="w-full md:w-96"
+              value={filter}
+              onChange={(e) => setFilter(e.target.value)}
+            />
+          </div>
         </CardHeader>
         <CardContent className="w-full">
           <ScrollArea className="w-[calc(100vw-82px)] md:w-[calc(100vw-98px)]">
@@ -152,7 +176,7 @@ export function Users({ users: dbUsers }: Props) {
                 </tr>
               </thead>
               <tbody>
-                {sortUsers(filterUsers(users, filter)).map((user) => {
+                {filterUsers(users, filter).map((user) => {
                   return (
                     <tr key={user.id} className="border-border border-b">
                       <td className="p-2">
@@ -170,6 +194,7 @@ export function Users({ users: dbUsers }: Props) {
                             user.id,
                             "admin",
                           )}
+                          disabled={loading}
                         />
                       </td>
                       <td className="p-2 text-center">
@@ -179,10 +204,14 @@ export function Users({ users: dbUsers }: Props) {
                             user.id,
                             "member",
                           )}
+                          disabled={loading}
                         />
                       </td>
                       <td className="p-2 text-center">
-                        <Checkbox checked={user.permission.partner} disabled />
+                        <Checkbox
+                          checked={user.permission.partner}
+                          disabled={loading}
+                        />
                       </td>
                     </tr>
                   );

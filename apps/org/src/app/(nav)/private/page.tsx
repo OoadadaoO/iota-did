@@ -1,3 +1,13 @@
 export default function Page() {
-  return <div className="mx-8 my-4 flex-1">This is a private page.</div>;
+  return (
+    <div className="my-8 flex-1 space-y-4 text-center">
+      <p className="text-2xl font-semibold tracking-tight">
+        This is a private page.
+      </p>
+      <p className="text-muted-foreground">
+        You can only see this if you are the{" "}
+        <span className="text-foreground"> member </span> of us.
+      </p>
+    </div>
+  );
 }

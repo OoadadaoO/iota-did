@@ -1,0 +1,1 @@
+{"version":3,"file":"types.d.ts","sourceRoot":"","sources":["../../../src/routes/revoke/types.ts"],"names":[],"mappings":"AAAA,OAAO,KAAK,EAAE,QAAQ,EAAE,aAAa,EAAE,MAAM,UAAU,CAAC;AAExD,MAAM,MAAM,kBAAkB,GAAG,QAAQ,CAAC,MAAM,CAAC,MAAM,EAAE,KAAK,CAAC,CAAC,CAAC;AAEjE,MAAM,MAAM,gBAAgB,GAAG,kBAAkB,GAAG,aAAa,CAAC"}

@@ -301,7 +301,7 @@ function CreateWalletButton() {
                   htmlFor="cpassword"
                   className="text-right after:text-red-500 after:content-['*']"
                 >
-                  Password
+                  Confirm Password
                 </Label>
                 <div className="col-span-3">
                   <Input

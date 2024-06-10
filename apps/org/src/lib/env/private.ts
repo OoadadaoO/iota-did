@@ -6,6 +6,7 @@ const privateEnvSchema = z.object({
   AUTH_SECRET: z.string(),
   AUTH_EXPIRES: z.string(),
   DB_PASSWORD: z.string().optional(),
+  VC_REVALIDATE_TIME: z.string(),
   IOTA_EXPRESS_URL: z.string().url(),
 });
 
@@ -17,6 +18,7 @@ export const privateEnv: PrivateEnv = {
   AUTH_SECRET: process.env.AUTH_SECRET!,
   AUTH_EXPIRES: process.env.AUTH_EXPIRES!,
   DB_PASSWORD: process.env.DB_PASSWORD!,
+  VC_REVALIDATE_TIME: process.env.VC_REVALIDATE_TIME!,
   IOTA_EXPRESS_URL: process.env.IOTA_EXPRESS_URL!,
 };
 

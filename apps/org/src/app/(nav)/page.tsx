@@ -24,7 +24,9 @@ export default async function Home() {
       </p>
       {session.user ? (
         <div className="border-primary bg-primary text-primary-foreground mx-auto block select-none rounded-3xl border-2 font-semibold transition-all duration-300 hover:rounded-sm">
-          <p className="block px-6 py-2">You're here</p>
+          <a href="/settings" className="block px-6 py-2">
+            Go to Dashboard
+          </a>
         </div>
       ) : (
         <button className="border-primary bg-primary text-primary-foreground mx-auto block rounded-3xl border-2 font-semibold transition-all duration-300 hover:rounded-sm">

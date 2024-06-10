@@ -1,4 +1,5 @@
 import express, { Request } from "express";
+import { decodeJwt, decodeProtectedHeader } from "jose";
 
 import {
   ICredential,
@@ -45,11 +46,21 @@ router.post(
         },
       });
       const content = await address.validateVC(vc);
+      const vcPayload = decodeJwt(vc.toString());
+      const vcHeader = decodeProtectedHeader(vc.toString());
       res.status(200).json({
         data: {
           vc: {
-            jwt: vc.toJSON(),
-            content: JSON.stringify(content),
+            jwt: vc.toString(),
+            content: JSON.stringify(content.credential),
+            did: vcPayload.sub!,
+            issuerDid: vcPayload.iss!,
+            issuerFragment: vcHeader.kid!.split("#")[1],
+            revokeFragment: (vcPayload.vc as any).credentialStatus.id.split(
+              "#",
+            )[1],
+            revokeIndex: (vcPayload.vc as any).credentialStatus
+              .revocationBitmapIndex,
           },
         },
       });

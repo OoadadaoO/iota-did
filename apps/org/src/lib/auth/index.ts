@@ -1,13 +1,17 @@
 import { cookies } from "next/headers";
 
+import axios from "axios";
 import bcrypt from "bcrypt";
 import type { JWTPayload } from "jose";
+
+import type { PostValidateVcResponse } from "@did/org-server/types";
 
 import { DataDb } from "../db";
 import type { UserType } from "../db/type";
 import { privateEnv } from "../env/private";
 import { Id } from "../utils/id";
-import { decodePermission } from "../utils/parsePermission";
+import { decodePermission, encodePermission } from "../utils/parsePermission";
+import { parseTimeToMilliSeconds } from "../utils/parseTimeToMilliSeconds";
 import { sessionToken } from "./config";
 import { decrypt, encrypt } from "./jwtCrypto";
 import type { Session, Token } from "./type";
@@ -127,8 +131,49 @@ export async function getSession({
 
   // find user by id(sub)
   const db = await DataDb.getInstance();
-  const existedUser = db.data.users[sub];
+  let existedUser = db.data.users[sub];
   if (!existedUser) return { message: "User not found" };
+
+  // check partner permission validity
+  const permission = decodePermission(existedUser.permission);
+  if (permission.partner) {
+    const credential = Object.values(db.data.partnerCredentials).find(
+      (c) => c.userId === existedUser.id,
+    );
+    // credential removed & scheduled re-validation
+    if (!credential) {
+      const newPermission = encodePermission({ ...permission, partner: false });
+      await db.update((data) => {
+        data.users[sub].permission = newPermission;
+      });
+    } else if (new Date(credential.expiredAt) < new Date()) {
+      // re-validate credential
+      const res = await axios.post<PostValidateVcResponse>(
+        `${privateEnv.IOTA_EXPRESS_URL}/api/iota/validate/vc`,
+        { jwt: credential.jwt },
+      );
+      if (res.data.error) {
+        // invalid => update permission & remove credential
+        const newPermission = encodePermission({
+          ...permission,
+          partner: false,
+        });
+        await db.update((data) => {
+          data.users[sub].permission = newPermission;
+          delete data.partnerCredentials[credential.id];
+        });
+      } else {
+        // valid => update expiredAt
+        const newExpiredAt = new Date(
+          Date.now() + parseTimeToMilliSeconds(privateEnv.VC_REVALIDATE_TIME),
+        ).toISOString();
+        await db.update((data) => {
+          data.partnerCredentials[credential.id].expiredAt = newExpiredAt;
+        });
+      }
+    }
+  }
+  existedUser = db.data.users[sub];
 
   return {
     user: {

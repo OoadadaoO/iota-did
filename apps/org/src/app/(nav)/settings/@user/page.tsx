@@ -7,7 +7,7 @@ import { Vc } from "./_components/Vc";
 export default async function Page() {
   const tk = await token();
   const dataDb = await DataDb.getInstance();
-  const vc = Object.values(dataDb.data.memberCredentials).find(
+  const vc = Object.values(dataDb.data.partnerCredentials).find(
     (vc) => vc.userId === tk?.sub,
   );
 

@@ -19,25 +19,35 @@ export type MemberCredentialType = {
   /** cred content */
   content: string;
   /** did of issuer */
-  issuerdid: string;
+  issuerDid: string;
   /** fragment of issuer */
   issuerFragment: string;
   /** Bitmap method */
   revokeFragment: string;
   /** Bitmap index */
-  revokeIndex: number;
+  revokeIndex: string;
 };
 
 /** VC of member of partners */
 export type PartnerCredentialType = {
   id: string;
   userId: string;
+  /** did of user */
+  did: string;
   /** raw jwt string */
   jwt: string;
+  /** cred content */
+  content: string;
   /** did of issuer */
-  issuer: string;
-  /** ISO 8601 datetime, for validation after a time interval */
-  lastValidAt: string;
+  issuerDid: string;
+  /** fragment of issuer */
+  issuerFragment: string;
+  /** Bitmap method */
+  revokeFragment: string;
+  /** Bitmap index */
+  revokeIndex: string;
+  /** ISO 8601 datetime, when the credential needs to be validated */
+  expiredAt: string;
 };
 
 /** DID of partners for issue vc */
