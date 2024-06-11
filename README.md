@@ -20,26 +20,36 @@ Therefore, a decentralized and trustworthy identity authentication framework is 
 
 - `apps/` - Contains the applications and examples
 
-  - `org/` - Web application for organization
+  - `org/` - Web application by [Next.js](https://github.com/vercel/next.js) for organization
 
-  - `wallet/` - Web application for DID wallet
+  - `org-server/` - Server by [Express](https://github.com/expressjs/express) for IOTA operations of organization
+
+  - `wallet/` - Web application by [Next.js](https://github.com/vercel/next.js) for DID wallet
+
+  - `wallet-server/` - Server by [Express](https://github.com/expressjs/express) for IOTA operations of DID wallet
 
 - `packages/` - Contains the packages that are sharedd by the applications
 
-  - `iota/` - IOTA DID clients extended from [@iota/identity-wasm](https://github.com/iotaledger/identity.rs) with usefull functions
+  - `iota/` - IOTA DID clients with usefull functions extended from [@iota/identity-wasm](https://github.com/iotaledger/identity.rs) and [@iota/sdk | @iota/sdk-wasm](https://github.com/iotaledger/iota-sdk)
 
-  - `lowdb/` - Custom [lowdb](https://github.com/typicode/lowdb) for local storage
+  - `lowdb/` - Custom [lowdb](https://github.com/typicode/lowdb) with optional encryption as local database
 
 - `examples/` - Examples that demonstrate the usage of the packages
 
-## Get Started
+- `db/` - Default directory for the local databases
+
+- `wallet/` - Default directory for the IOTA wallets and key storages
+
+## Getting Started
+
+> All the command below should be executed in the root of this repo.
 
 ### Prerequisites
 
 - Node.js v20
-- yarn 1.22
+- Yarn v1.22
 
-👉 [Installation Guide](https://adada1024.notion.site/NodeJs-f9a83de221e64e46ba930a62246f2256)
+> If you have not installed Node.js and Yarn or have any problem with versioning, you can install them by following this [Guide to Installation](https://adada1024.notion.site/NodeJs-f9a83de221e64e46ba930a62246f2256).
 
 ### Clone the repository
 
@@ -79,6 +89,94 @@ Run the example in [`./examples`](./examples/package.json)
   yarn examples test:vc_vp
   ```
 
+### Run Wallet Web Application
+
+Setup the environment variables,
+
+```bash
+cp apps/wallet-server/.env.example apps/wallet-server/.env
+cp apps/wallet/.env.example apps/wallet/.env.local
+```
+
+Edit the environment variables following the explanation below,
+
+```ini
+# apps/wallet-server/.env
+
+PORT=8081    # express listening port
+DB_PASSWORD= # password for local database, optional
+IOTA_FAUCET_ENDPOINT=https://faucet.testnet.iotaledger.net/api/enqueue
+IOTA_API_ENDPOINT=https://api.testnet.iotaledger.net
+
+
+# apps/wallet/.env.local
+
+PASSWORD_SECRET=    # secret for stronghold password encryption ($ openssl rand -base64 32)
+PASSWORD_EXPIRES=1h # stronghold password expires, supports  s, m, h, d, w.
+IOTA_EXPRESS_URL=http://localhost:8081     # express listening url, same as PORT in wallet-server
+NEXT_PUBLIC_BASE_URL=http://localhost:8080 # base url for the web application
+```
+
+Build and run the server,
+
+```bash
+yarn wallet-server build && yarn wallet-server start
+```
+
+**Keep the server running** and open a new terminal, build and run the application,
+
+```bash
+yarn wallet build && yarn wallet start -p 8080  # the flag -p should be the same as NEXT_PUBLIC_BASE_URL in .env.local
+```
+
+Open the browser and go to `http://localhost:8080`. If you run on a remote server, use ssh port forwarding to access the web application.
+
+### Run Org Web Application
+
+Setup the environment variables,
+
+```bash
+cp apps/org-server/.env.example apps/org-server/.env
+cp apps/org/.env.example apps/org/.env.local
+```
+
+Edit the environment variables following the explanation below,
+
+```ini
+# apps/org-server/.env
+
+PORT=8001          # express listening port
+NAME=OrgA          # wallet's name (you've set it in our Wallet app)
+WALLET_PASSWORD=   # wallet's stronghold password (you've set it in our Wallet app)
+IOTA_API_ENDPOINT=https://api.testnet.iotaledger.net
+
+
+# apps/org/.env.local
+
+AUTH_SALT_ROUNDS=10    # salt rounds for password hashing
+AUTH_SECRET=           # secret for jwt encryption ($ openssl rand -base64 32)
+AUTH_EXPIRES=1d        # jwt expires, supports  s, m, h, d, w.
+DB_PASSWORD=           # password for local database, optional
+VC_REVALIDATE_TIME=30d # revalidate time for partner user's verifiable credentials
+IOTA_EXPRESS_URL=http://localhost:8001     # express listening url, same as PORT in org-server
+NEXT_PUBLIC_NAME=OrgA                      # organization name displayed in the web application
+NEXT_PUBLIC_BASE_URL=http://localhost:8000 # base url for the web application
+```
+
+Build and run the server,
+
+```bash
+yarn org-server build && yarn org-server start
+```
+
+**Keep the server running** and open a new terminal, build and run the application,
+
+```bash
+yarn org build && yarn org start -p 8000    # the flag -p should be the same as NEXT_PUBLIC_BASE_URL in .env.local
+```
+
+Open the browser and go to `http://localhost:8000`. If you run on a remote server, use ssh port forwarding to access the web application.
+
 ## Intergration
 
 ### [Firefly](https://github.com/iotaledger/firefly)
@@ -87,11 +185,11 @@ Run the example in [`./examples`](./examples/package.json)
 
 2. Choose network > Custom network
 
-3. Network > Custom
+3. _Network_ > Custom
 
-   Coin type > 4219 (for DID purpose)
+   _Coin type_ > 4219 (for DID purpose)
 
-   Node Address > https://api.testnet.iotaledger.net
+   _Node Address_ > https://api.testnet.iotaledger.net
 
 4. Setup Profile > Restore > Use Stronghold backup
 
