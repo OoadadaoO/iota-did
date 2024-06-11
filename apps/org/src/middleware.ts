@@ -45,9 +45,7 @@ export async function middleware(request: NextRequest) {
 
   // route protection by permission
   const auth = decodePermission(permission);
-  const reherf = request.headers.get("referer")?.startsWith(request.url)
-    ? "/"
-    : request.headers.get("referer") || "/";
+  const reherf = "/";
   if (auth.admin) {
     if (adminForbid.some((r) => r.test(pathname)))
       return NextResponse.redirect(new URL(reherf, request.url));
