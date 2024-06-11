@@ -9,6 +9,7 @@ import type { PostValidateVcResponse } from "@did/org-server/types";
 import { DataDb } from "../db";
 import type { UserType } from "../db/type";
 import { privateEnv } from "../env/private";
+import { publicEnv } from "../env/public";
 import { Id } from "../utils/id";
 import { decodePermission, encodePermission } from "../utils/parsePermission";
 import { parseTimeToMilliSeconds } from "../utils/parseTimeToMilliSeconds";
@@ -50,28 +51,40 @@ export async function login(params: LoginParams) {
   try {
     let user: UserType;
     const db = await DataDb.getInstance();
+    const email = params.email.toLowerCase();
     if (params.type === "signup") {
       const id = Id();
       const hashedPassword = await bcrypt.hash(
         params.password,
         privateEnv.AUTH_SALT_ROUNDS,
       );
+      // DEMO: Permission default
+      // 1. email is admin@{name}.org => admin
+      // 2. email is <any>@{name}.org => member
+      const permission =
+        email === `admin@${publicEnv.NEXT_PUBLIC_NAME.toLowerCase()}.org`
+          ? encodePermission({ admin: true, member: false, partner: false })
+          : email.split("@")[1] ===
+              `${publicEnv.NEXT_PUBLIC_NAME.toLowerCase()}.org`
+            ? encodePermission({ admin: false, member: true, partner: false })
+            : encodePermission({ admin: false, member: false, partner: false });
+      // DEMO END
       user = {
         id,
-        username: params.email.split("@")[0],
-        email: params.email,
+        username: email.split("@")[0],
+        email,
         hashedPassword,
-        permission: 0,
+        permission,
       };
       const existedUser = Object.values(db.data.users).find(
-        (u) => u.email === user.email,
+        (u) => u.email === email,
       );
       if (existedUser) return 1013;
       db.data.users[id] = user;
       await db.write();
     } else {
       const existedUser = Object.values(db.data.users).find(
-        (u) => u.email === params.email,
+        (u) => u.email === email,
       );
       if (!existedUser) return 1014;
       const match = await bcrypt.compare(
