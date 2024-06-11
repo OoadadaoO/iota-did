@@ -210,7 +210,11 @@ export function Users({ users: dbUsers }: Props) {
                       <td className="p-2 text-center">
                         <Checkbox
                           checked={user.permission.partner}
-                          disabled={loading}
+                          onCheckedChange={handlePermissionChange(
+                            user.id,
+                            "partner",
+                          )}
+                          disabled={loading || !user.permission.partner}
                         />
                       </td>
                     </tr>

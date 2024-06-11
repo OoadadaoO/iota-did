@@ -102,7 +102,14 @@ export async function PATCH(
           }
         }
       }
-
+      if (!update.partner) {
+        const c = Object.values(db.data.partnerCredentials).find(
+          (c) => c.userId === dbUser.id,
+        );
+        if (c) {
+          delete db.data.partnerCredentials[c.id];
+        }
+      }
       dbUser.permission = data.permission;
     }
     await db.write();

@@ -13,7 +13,7 @@ export class DIDWallet extends DWallet {
   public static async getInstance(name: string) {
     if (!DIDWallet.#instances.has(name)) {
       if (!isValidFolderName(name)) throw new Error("Invalid folder name.");
-      const storagePath = `${env.WALLET_BASEPATH}${name}`;
+      const storagePath = `../../wallet/${name}`;
       const newWallet = new DIDWallet({
         storagePath,
         clientOptions: {

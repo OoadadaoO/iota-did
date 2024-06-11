@@ -25,7 +25,7 @@ export class VcDb extends LowDB<VcSchema> {
   public static async getInstance(b64uName: string) {
     const name = b64uToUtf8(b64uName);
     if (!VcDb.#instances.has(name)) {
-      const filepath = `${env.WALLET_BASEPATH}${name}/_vc.json`;
+      const filepath = `../../wallet/${name}/_vc.json`;
       ensureDirExist(filepath);
       const newWallet = new VcDb({
         filename: filepath,

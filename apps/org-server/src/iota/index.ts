@@ -13,7 +13,7 @@ export class DIDWallet extends DWallet {
 
   public static async getInstance() {
     if (!DIDWallet.#instance || !DIDWallet.#address) {
-      const storagePath = `${env.WALLET_BASEPATH}${env.ORG_NAME}`;
+      const storagePath = `../../wallet/${env.NAME}`;
       DIDWallet.#instance = new DIDWallet({
         storagePath,
         clientOptions: {

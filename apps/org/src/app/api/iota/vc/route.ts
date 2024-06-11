@@ -102,11 +102,12 @@ export async function POST(
         { status: 200 },
       );
     }
+    const id = Id();
     const index = crypto.randomBytes(4).readUInt32BE(0);
     const data = {
       issuer: { did: config.issuerDid, frag: config.issuerFragment },
       credData: {
-        id: `${publicEnv.NEXT_PUBLIC_BASE_URL}/credentials/${session.user.id}`,
+        id: `${publicEnv.NEXT_PUBLIC_BASE_URL}/credentials/${id}`,
         type: "GroupMemberCredential",
         issuer: config.issuerDid,
         credentialSubject: {
@@ -128,7 +129,7 @@ export async function POST(
     // save vc to db
     const vcData = res.data.data.vc;
     const newVc: MemberCredentialType = {
-      id: Id(),
+      id,
       userId: session.user.id,
       ...vcData,
     };

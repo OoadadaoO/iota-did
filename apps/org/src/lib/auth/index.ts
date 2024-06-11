@@ -142,6 +142,7 @@ export async function getSession({
     );
     // credential removed & scheduled re-validation
     if (!credential) {
+      // remove permission
       const newPermission = encodePermission({ ...permission, partner: false });
       await db.update((data) => {
         data.users[sub].permission = newPermission;
