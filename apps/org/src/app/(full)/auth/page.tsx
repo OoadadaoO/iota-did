@@ -10,10 +10,10 @@ import { SignUp } from "./_components/SignUp";
 
 export default async function Page() {
   return (
-    <div className="grid h-dvh grid-cols-1 p-3 lg:grid-cols-2">
-      <div className="hidden overflow-hidden rounded-2xl lg:block">
+    <div className="flex h-dvh p-3">
+      <div className="hidden max-w-[1024px] flex-1 overflow-hidden rounded-2xl lg:block">
         <Image
-          className="h-full object-cover brightness-110 contrast-100 dark:brightness-[80%]"
+          className="h-full object-cover brightness-125 contrast-125 dark:brightness-[80%]"
           src="/background.png"
           alt="background"
           height={1024}
@@ -23,7 +23,7 @@ export default async function Page() {
       </div>
       <Tabs
         defaultValue="login"
-        className="flex flex-col items-center justify-between"
+        className="mx-auto flex flex-1 flex-col items-center justify-between"
       >
         <div className="flex w-full items-center justify-between px-3 py-3 lg:pl-6">
           <TabsList>

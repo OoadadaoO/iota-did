@@ -17,6 +17,7 @@ import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Checkbox } from "@/components/ui/checkbox";
 import { Input } from "@/components/ui/input";
 import { ScrollArea, ScrollBar } from "@/components/ui/scroll-area";
+import { useSession } from "@/hook/SessionContext";
 import type { UserType } from "@/lib/db/type";
 import {
   decodePermission,
@@ -34,6 +35,7 @@ type UserState = (Omit<UserType, "hashedPassword" | "permission"> & {
 })[];
 
 export function Users({ users: dbUsers }: Props) {
+  const { session } = useSession();
   const [loading, setLoading] = useState<boolean>(false);
   const [filter, setFilter] = useState<string>("");
   const [users, setUsers] = useState<UserState>(
@@ -194,7 +196,7 @@ export function Users({ users: dbUsers }: Props) {
                             user.id,
                             "admin",
                           )}
-                          disabled={loading}
+                          disabled={loading || session?.user?.id === user.id}
                         />
                       </td>
                       <td className="p-2 text-center">
