@@ -7,7 +7,7 @@ import {
   RevocationBitmap,
 } from "@iota/identity-wasm/node";
 
-import { DIDWallet } from "../../iota";
+import { DIDAddress } from "../../iota";
 import type { TypedResponse } from "../types";
 import type { PostVcResponse } from "./types";
 
@@ -36,7 +36,7 @@ router.post(
   ) => {
     try {
       const { issuer, credData, revoke } = req.body;
-      const { address } = await DIDWallet.getInstance();
+      const address = await DIDAddress.getInstance();
       const vc = await address.createVC(issuer.did, issuer.frag, {
         ...credData,
         credentialStatus: {

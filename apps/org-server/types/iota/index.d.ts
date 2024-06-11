@@ -1,10 +1,7 @@
-import { DIDWallet as DWallet, type DIDAddress } from "@did/iota";
-export declare class DIDWallet extends DWallet {
+import { DIDAddress as DAddress } from "@did/iota";
+export declare class DIDAddress extends DAddress {
     #private;
     private constructor();
-    static getInstance(): Promise<{
-        wallet: DIDWallet;
-        address: DIDAddress;
-    }>;
+    static getInstance(): Promise<DIDAddress>;
 }
 //# sourceMappingURL=index.d.ts.map

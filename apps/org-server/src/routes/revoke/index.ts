@@ -1,6 +1,6 @@
 import express, { Request } from "express";
 
-import { DIDWallet } from "../../iota";
+import { DIDAddress } from "../../iota";
 import type { TypedResponse } from "../types";
 import type { RevokeVcResponse } from "./types";
 
@@ -24,7 +24,7 @@ router.post(
   ) => {
     try {
       const { type, did, frag, index } = req.body;
-      const { address } = await DIDWallet.getInstance();
+      const address = await DIDAddress.getInstance();
       if (type === "revoke") {
         await address.revokeVC(did, frag, parseInt(index));
       } else if (type === "unrevoke") {

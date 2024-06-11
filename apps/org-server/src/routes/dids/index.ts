@@ -2,7 +2,7 @@ import express from "express";
 
 import { getClassfiedMethods, getServices } from "@did/iota";
 
-import { DIDWallet } from "../../iota";
+import { DIDAddress } from "../../iota";
 import type { TypedResponse } from "../types";
 import type { GetDIDsResponse } from "./types";
 
@@ -13,7 +13,7 @@ router.get(
   "/",
   async (req: express.Request, res: TypedResponse<GetDIDsResponse>) => {
     try {
-      const { address } = await DIDWallet.getInstance();
+      const address = await DIDAddress.getInstance();
       const dids = (await address.getDids()).map((doc) => ({
         did: doc.id().toString(),
         method: getClassfiedMethods(doc, true),

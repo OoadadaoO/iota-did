@@ -3,7 +3,7 @@ import { decodeJwt, decodeProtectedHeader } from "jose";
 
 import { Jwt } from "@iota/identity-wasm/node";
 
-import { DIDWallet } from "../../iota";
+import { DIDAddress } from "../../iota";
 import type { TypedResponse } from "../types";
 import type { PostValidateVcResponse, PostValidateVpResponse } from "./types";
 
@@ -24,7 +24,7 @@ router.post(
   ) => {
     try {
       const { jwt } = req.body;
-      const { address } = await DIDWallet.getInstance();
+      const address = await DIDAddress.getInstance();
       try {
         const content = await address.validateVC(new Jwt(jwt));
         const vcPayload = decodeJwt(jwt.toString());
@@ -76,7 +76,7 @@ router.post(
   ) => {
     try {
       const { jwt } = req.body;
-      const { address } = await DIDWallet.getInstance();
+      const address = await DIDAddress.getInstance();
       try {
         const { credentials, rawCredentials } = await address.validateVP(
           new Jwt(jwt),
