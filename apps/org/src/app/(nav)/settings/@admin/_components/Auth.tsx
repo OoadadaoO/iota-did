@@ -361,7 +361,7 @@ function PartnerDialog({
       setLoading(true);
       const newAllowedIssuers = [
         ...config.allowedIssuers.filter(
-          (i) => i.did !== sDid || i.name !== sName,
+          (i) => i.did !== issuer.did || i.name !== issuer.name,
         ),
         { name: sName, did: sDid },
       ];
