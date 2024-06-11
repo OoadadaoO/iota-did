@@ -146,7 +146,7 @@ Edit the environment variables following the explanation below,
 # apps/org-server/.env
 
 PORT=8001          # express listening port
-NAME=OrgA          # wallet's name (you've set it in our Wallet app)
+NAME=NMLAB          # wallet's name (you've set it in our Wallet app)
 WALLET_PASSWORD=   # wallet's stronghold password (you've set it in our Wallet app)
 IOTA_API_ENDPOINT=https://api.testnet.iotaledger.net
 
@@ -159,7 +159,7 @@ AUTH_EXPIRES=1d        # jwt expires, supports  s, m, h, d, w.
 DB_PASSWORD=           # password for local database, optional
 VC_REVALIDATE_TIME=30d # revalidate time for partner user's verifiable credentials
 IOTA_EXPRESS_URL=http://localhost:8001     # express listening url, same as PORT in org-server
-NEXT_PUBLIC_NAME=OrgA                      # organization name displayed in the web application
+NEXT_PUBLIC_NAME=NMLAB                      # organization name displayed in the web application
 NEXT_PUBLIC_BASE_URL=http://localhost:8000 # base url for the web application
 ```
 
