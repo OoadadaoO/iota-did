@@ -226,19 +226,26 @@ export const getFundsFromFaucet = async (
     await address.requestFunds(env.IOTA_FAUCET_ENDPOINT);
 
     // wait for funds to be received
-    const origin = (await address.getBalance()) || 0n;
+    // const origin = (await address.getBalance()) || 0n;
+    // let balance = origin;
+    // while (balance === origin) {
+    //   // Get the balance
+    //   balance = (await address.getBalance()) || origin;
+    //   if (balance > origin) break;
+    //   await new Promise((resolve) => setTimeout(resolve, 500));
+    // }
+    const account = await wallet.getAccount(req.params.index);
+    let accountBalance = await account?.getBalance();
+    const origin = accountBalance?.baseCoin.total || 0n;
     let balance = origin;
     while (balance === origin) {
-      // Get the balance
-      balance = (await address.getBalance()) || origin;
-      if (balance > origin) break;
       await new Promise((resolve) => setTimeout(resolve, 500));
+      accountBalance = await account?.getBalance();
+      balance = accountBalance?.baseCoin.total || origin;
     }
-    const account = await wallet.getAccount(req.params.index);
-    const accountBalance = await account?.getBalance();
     res.status(200).json({
       data: {
-        balance: balance?.toString() || "0",
+        balance: balance.toString() || "0",
         accountBalance: {
           total: accountBalance?.baseCoin.total.toString() || "0",
           available: accountBalance?.baseCoin.available.toString() || "0",
