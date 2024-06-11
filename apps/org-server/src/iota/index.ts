@@ -63,6 +63,7 @@ export class DIDAddress extends DAddress {
       const keyIdDb = new KeyIdDb({
         filename: `${storagePath}/_keyid.json`,
       });
+      await keyIdDb.read();
       DIDAddress.#instance = new DIDAddress({
         secretManagerType,
         accountIndex,
