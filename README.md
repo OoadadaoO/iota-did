@@ -4,17 +4,17 @@
 
 ### Background
 
-For example, the collaboration between BMW, Volkswagen, and Nissan in developing autonomous driving maps exemplifies the concept of "coopetition" — a blend of cooperation and competition. These automakers aim to accelerate technological development to enhance their competitive edge and raise industry entry barriers. To facilitate the sharing and development of new knowledge and technologies, they need to interlink their information systems to access shared resources.
+Centralized identities face security issues due to single points of failure, making them vulnerable to data breaches and identity theft. Trust is also problematic as users must rely on central authorities to manage and verify their identities. Decentralized Identifiers (DIDs) and Self-Sovereign Identity (SSI) address these issues by enabling individuals to control their own identities, reducing reliance on central authorities, and enhancing security through distributed ledger technologies.
+
+Decentralized Identifiers (DIDs) and Self-Sovereign Identity (SSI) have become global trends, with initiatives like the EU's eIDAS2.0 and Taiwan's forthcoming digital identity wallet. Beyond issuing citizen identities, governments are encouraging enterprises to join as identity issuers and integrate with the government wallet, aiming to provide citizens with safer and more convenient digital identity use cases.
 
 ### Issues
 
-Traditionally, such interlinking relies on a new entity, perhaps a jointly established access control node by the three companies, which in turn determines the trust and security of the entire information system.
-
-From a trust perspective, since these companies are competitors, any party manipulating this node—such as through authorization abuse or data interception — would collapse the trust chain. From a security standpoint, attacks on this node, whether by other competitors or malicious entities, such as denial-of-service attacks or hacking, would pose significant information security risks to all three companies.
+In today's development landscape, both governments and enterprises have a strong demand for implementing decentralized identity issuance and verification. However, many enterprises may delay or reject development due to technical inadequacies or the high research costs associated with this cutting-edge technologies. Additionally, enterprise management department requires a user-friendly UI to efficiently manage DID documents responsible for identity issuance.
 
 ### Solution
 
-Therefore, a decentralized and trustworthy identity authentication framework is needed to address the issue of interlinking information systems. The IOTA Identity Framework offers a solution that combines these characteristics with low cost and high efficiency.
+Therefore, we provide a reference implementation for deploying decentralized identity, alongside a user-friendly DID management wallet. This solution is based on the IOTA Tangle, which is a distributed ledger technology that is feeless, scalable, and secure. Our solution includes a DID wallet and an organization management system, which can be easily integrated into existing systems. Unlike common digital identity wallets that only have functions of create DID, store VCs and present VPs, our DID wallet allows users to manage their DIDs, which is essential for enterprise management departments.
 
 ## Folder Structure
 
